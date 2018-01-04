@@ -24,8 +24,10 @@
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
     "eslint": "^4.14.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-mocha": "^4.11.0",
     "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-prettier": "^2.4.0",
     "mocha": "^4.1.0",
     "nodemon": "^1.14.7"
   },
