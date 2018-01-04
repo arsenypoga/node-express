@@ -39,6 +39,7 @@ module.exports = (express, logger) => {
     //
     router.post('/users', (req, res) => {
         logger.debug("Request body: " + req.body);
+        res.status(200).json();
     });
 
     return router;

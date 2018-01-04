@@ -18,7 +18,7 @@ chai.use(chaiHTTP)
 
 
 
-describe('API ROUTES', () => {
+describe('/api', () => {
 //
 // ─── AUTHENTIFICATION  ───────────────────────────────────────────────────────────
 //
@@ -35,8 +35,8 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         getUser(res)
+        done()
       })
-      done()
   })
   it('should return error if email is blank', done => {
     chai
@@ -49,8 +49,8 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'email')
+        done()
       })
-      done()
   })
   it('should return error if password is blank', done => {
     chai
@@ -63,8 +63,8 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'password')
+        done();
       })
-      done();
   })
 })
 
@@ -72,7 +72,7 @@ describe('POST /api/users/login', () => {
   // ─── REGISTRATION ───────────────────────────────────────────────────────────────
   //
 describe('POST /api/users', () => {
-  it('should uccessfully create a user', done => {
+  it('should successfully create a user', done => {
     chai
       .request(app)
       .post('/api/users')
@@ -83,8 +83,8 @@ describe('POST /api/users', () => {
           username: chance.email().split('@', 1)
         }}).end((err, res) => {
           getUser(res)
+            done()
         })
-        done()
       })
   
 
@@ -101,8 +101,8 @@ describe('POST /api/users', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'email')
+        done()
       })
-      done()
     })
     it('should return an error is password is blank', done => {
       chai.request(app)
@@ -115,8 +115,8 @@ describe('POST /api/users', () => {
         })
         .end((err, res) => {
           unprocessableEntity(res, 'password')
+          done()
         })
-        done()
     })
  
     it('should return an error if username is blank', done => {
@@ -131,8 +131,8 @@ describe('POST /api/users', () => {
         })
         .end((err, res) => {
           unprocessableEntity(res, 'username')
+          done()
         })
-        done()
     })
   })
 })
