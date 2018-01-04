@@ -10,6 +10,41 @@ module.exports = (express, logger) => {
 	const router = express.Router();
 
 	//
+	// ─── GET USER ───────────────────────────────────────────────────────────────────
+	//
+
+	router.get("/user", (req, res) => {
+		res.status(200).json({
+			user: {
+				email: chance.email(),
+				token: chance.guid(),
+				username: chance
+					.email()
+					.split("@", 1)
+					.join(""),
+				bio: "Mios dio",
+				image: null,
+			},
+		});
+	});
+
+	//
+	// ─── UPDATE USER ────────────────────────────────────────────────────────────────
+	//
+
+	router.put("/user", (req, res) => {
+		res.status(200).json({
+			user: {
+				email: req.body.user.email,
+				token: req.body.user.token,
+				username: req.body.user.username,
+				bio: req.body.user.bio,
+				image: req.body.user.image,
+			},
+		});
+	});
+
+	//
 	// ─── AUTHENTIFICATION ───────────────────────────────────────────────────────────
 	//
 	router.post("/users/login", (req, res) => {
@@ -35,7 +70,7 @@ module.exports = (express, logger) => {
 			user: {
 				email: req.body.user.email,
 				token: chance.guid(),
-				username: chance.email().split("@", 0),
+				username: req.body.user.password,
 				bio: "Mios dio",
 				image: null,
 			},
