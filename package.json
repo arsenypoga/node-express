@@ -1,0 +1,37 @@
+{
+  "name": "node-express",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "chalk": "^2.3.0",
+    "chance": "^1.0.13",
+    "cors": "^2.8.4",
+    "errorhandler": "^1.5.0",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "method-override": "^2.3.10",
+    "methods": "^1.1.2",
+    "mongoose": "^5.0.0-rc1",
+    "morgan": "^1.9.0",
+    "winston": "^2.4.0"
+  },
+  "urls": {
+    "mongodb_url": "kappapride"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
+    "eslint": "^4.14.0",
+    "eslint-plugin-mocha": "^4.11.0",
+    "eslint-plugin-node": "^5.2.1",
+    "mocha": "^4.1.0",
+    "nodemon": "^1.14.7"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "mocha"
+  }
+}
