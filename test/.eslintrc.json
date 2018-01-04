@@ -14,14 +14,25 @@
     "rules": {
         "no-const-assign": "warn",
         "no-this-before-super": "warn",
-        "no-undef": "warn",
+        "no-undef": "off",
         "no-unreachable": "warn",
-        "no-unused-vars": "warn",
+        "no-unused-vars": "off",
         "constructor-super": "warn",
-        "valid-typeof": "warn"
+        "valid-typeof": "warn",
+        "mocha/valid-test-description":"warn",
+        "mocha/handle-done-callback": "warn",
+        "mocha/max-top-level-suites": "warn",
+        "mocha/no-global-tests": "warn",
+        "mocha/no-hooks-for-single-case": "warn",
+        "mocha/disallow-hooks": "warn",
+        "mocha/no-identical-title": "warn",
+        "mocha/no-nested-tests": "warn",
+        "mocha/no-synchronous-tests": "warn"
     },
     "plugins": [
         "mocha"
     ],
-    "extends": ["eslint:recommended", "plugin:mocha/recommended"]
+    "extends": ["eslint:recommended", "plugin:mocha/recommended"],
+    "root": true
+
 }

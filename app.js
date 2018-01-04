@@ -93,7 +93,7 @@ if (!isProduction) app.use(errorhandler());
 //
 
 app.use((err, req, res, next) => {
-    console.log(err.stack);
+    logger.log(err.stack);
 
     res.status(err.status || 500);
 

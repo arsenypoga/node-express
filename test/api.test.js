@@ -16,11 +16,14 @@ const app = require('../app.js')
 let should = chai.should()
 chai.use(chaiHTTP)
 
+
+
+describe('API ROUTES', () => {
 //
 // ─── AUTHENTIFICATION  ───────────────────────────────────────────────────────────
 //
 describe('POST /api/users/login', () => {
-  it('Successfully authentificates', done => {
+  it('should Successfully authentificates', done => {
     chai
       .request(app)
       .post('/api/users/login')
@@ -32,10 +35,10 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         getUser(res)
-        done()
       })
+      done()
   })
-  it('returns error if email is blank', done => {
+  it('should return error if email is blank', done => {
     chai
       .request(app)
       .post('/api/users/login')
@@ -46,10 +49,10 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'email')
-        done()
       })
+      done()
   })
-  it('returns error if password is blank', done => {
+  it('should return error if password is blank', done => {
     chai
       .request(app)
       .post('/api/users/login')
@@ -60,8 +63,8 @@ describe('POST /api/users/login', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'password')
-        done()
       })
+      done();
   })
 })
 
@@ -69,7 +72,7 @@ describe('POST /api/users/login', () => {
   // ─── REGISTRATION ───────────────────────────────────────────────────────────────
   //
 describe('POST /api/users', () => {
-  it('Successfully creates a user', done => {
+  it('should uccessfully create a user', done => {
     chai
       .request(app)
       .post('/api/users')
@@ -80,13 +83,13 @@ describe('POST /api/users', () => {
           username: chance.email().split('@', 1)
         }}).end((err, res) => {
           getUser(res)
-          done()
         })
+        done()
       })
   
 
 
-  it('returns error if email is blank', done => {
+  it('should return an error if email is blank', done => {
     chai
     .request(app)
       .post('/api/users')
@@ -98,10 +101,10 @@ describe('POST /api/users', () => {
       })
       .end((err, res) => {
         unprocessableEntity(res, 'email')
-        done()
       })
+      done()
     })
-    it('returns error is password is blank', done => {
+    it('should return an error is password is blank', done => {
       chai.request(app)
         .post('/api/users')
         .send({
@@ -112,11 +115,11 @@ describe('POST /api/users', () => {
         })
         .end((err, res) => {
           unprocessableEntity(res, 'password')
-          done()
         })
+        done()
     })
  
-    it('returns error if username is blank', done => {
+    it('should return an error if username is blank', done => {
       chai
         .request(app)
         .post('/api/users')
@@ -128,11 +131,11 @@ describe('POST /api/users', () => {
         })
         .end((err, res) => {
           unprocessableEntity(res, 'username')
-          done()
         })
+        done()
     })
   })
-
+})
 
 const getUser = res => {
   res.should.have.status(200)
