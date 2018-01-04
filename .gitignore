@@ -59,7 +59,7 @@ typings/
 
 # next.js build output
 .next
-
+# VS code 
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

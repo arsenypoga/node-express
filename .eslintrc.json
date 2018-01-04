@@ -23,5 +23,5 @@
     "plugins": [
         "node"
     ],
-    "extends": ["eslint:recommended", "plugins:node/recommended"]
+    "extends": ["eslint:recommended", "plugin:node/recommended"]
 }

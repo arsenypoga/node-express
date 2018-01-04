@@ -23,5 +23,5 @@
     "plugins": [
         "mocha"
     ],
-    "extends": ["eslint:recommended", "plugins:mocha/recommened"]
+    "extends": ["eslint:recommended", "plugin:mocha/recommended"]
 }
