@@ -8,6 +8,12 @@ const app = require("../app.js");
 let should = chai.should();
 chai.use(chaiHTTP);
 
+const Mockgoose = require("mockgoose-fix").Mockgoose;
+const Mongoose = require("mongoose").Mongoose;
+const mongoose = new Mongoose();
+const mockgoose = new Mockgoose(mongoose);
+const pckg = require("../package.json");
+
 describe("GET /", () => {
     it("should get index http", done => {
         chai
@@ -19,3 +25,13 @@ describe("GET /", () => {
             });
     });
 });
+
+module.exports.setMongoose = done => {
+    mockgoose.prepareStorage().then(function() {
+        mongoose.connect(pckg.urls.mongodb_test_url, err => done(err));
+        mongoose.connection.on("connected", () =>
+            console.log("Connection to test Database succcessful")
+        );
+        done();
+    });
+};

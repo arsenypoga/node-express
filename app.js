@@ -12,22 +12,26 @@ const morgan = require("morgan");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const Chance = require("chance");
-
+const Mockgoose = require("mockgoose-fix").Mockgoose;
 //
 // ─── IMPORTING CONFIG FROM A PACKAGE ────────────────────────────────────────────
 //
 
 const pckg = require("./package.json");
+const mockgoose = new Mockgoose(mongoose);
 
 //
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
 //
 
 const logger = require("./logger.js");
-// Turn off logging if testing
-if (process.env.NODE_ENV == "test")
-    logger.transports["console.debug"].silent = true;
 
+if (process.env.NODE_ENV == ("test" || "development")) {
+    // Turn off logging if testing
+    logger.transports["console.debug"].silent = true;
+    mongoose.connect(pckg.urls.mongodb_test_url);
+    mongoose.set("debug", true);
+}
 //
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────
 //
@@ -85,10 +89,6 @@ app.use(
 
 // If dev use errorhadler
 if (!isProduction) app.use(errorhandler());
-
-// Disable mongoose routes
-mongoose.connect(pckg.urls.mongodb_url);
-mongoose.set("debug", true);
 
 //
 // ─── ERROR HANDLING IN PRODUCTION ───────────────────────────────────────────────

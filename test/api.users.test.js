@@ -16,6 +16,12 @@ const app = require("../app.js");
 let should = chai.should();
 chai.use(chaiHTTP);
 
+const setMongoose = require("./index.test").setMongoose;
+
+before(done => {
+    setMongoose(done);
+});
+
 describe("/api/user", () => {
     //
     // ─── AUTHENTIFICATION  ───────────────────────────────────────────────────────────
