@@ -11,7 +11,9 @@ module.exports = (express, logger) => {
     //
     // ───LIST ARTICLES  ───────────────────────────────────────────────────────────────────────────
     //
-    router.get("/", (req, res) => {});
+    router.get("/", (req, res) => {
+        res.status(200)
+    });
 
     //
     // ─── FEED ARTICLES ──────────────────────────────────────────────────────────────
@@ -67,4 +69,7 @@ module.exports = (express, logger) => {
     // ─── UNFAVORITE ARTICLE ─────────────────────────────────────────────────────────
     //
     router.delete("/:slug/favorite", (req, res) => {});
+
+
+
 };
