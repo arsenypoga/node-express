@@ -29,9 +29,8 @@ describe("GET /", () => {
 module.exports.setMongoose = done => {
     mockgoose.prepareStorage().then(function() {
         mongoose.connect(pckg.urls.mongodb_test_url, err => done(err));
-        mongoose.connection.on("connected", () =>
-            console.log("Connection to test Database succcessful")
-        );
-        done();
+        mongoose.connection.on("connected", () => {
+            console.log("Connection to test Database succcessful");
+        });
     });
 };

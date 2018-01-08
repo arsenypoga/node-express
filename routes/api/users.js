@@ -5,8 +5,8 @@
 //
 const Chance = require("chance");
 const chance = Chance();
-
-const User = require("../../models/User");
+const mongoose = require("mongoose");
+const User = mongoose.model("User");
 
 module.exports = (express, logger) => {
     const router = express.Router();
@@ -15,43 +15,61 @@ module.exports = (express, logger) => {
     // ─── GET USER ───────────────────────────────────────────────────────────────────
     //
 
-    router.get("/user", (req, res) => {
-        res.status(200).json({
-            user: {
-                email: chance.email(),
-                token: chance.guid(),
-                username: chance
-                    .email()
-                    .split("@", 1)
-                    .join(""),
-                bio: "Mios dio",
-                image: null,
-            },
-        });
+    router.get("/user", (req, res, next) => {
+        User.findOne({ email: req.body.user.email })
+            .then(user => {
+                if (!user) return res.sendStatus(401);
+                return res.json({ user: user.getUser() });
+            })
+            .catch(next);
     });
 
     //
     // ─── UPDATE USER ────────────────────────────────────────────────────────────────
     //
 
-    router.put("/user", (req, res) => {
-        res.status(200).json({
-            user: {
-                email: req.body.user.email,
-                token: req.body.user.token,
-                username: req.body.user.username,
-                bio: req.body.user.bio,
-                image: req.body.user.image,
-            },
-        });
+    router.put("/user", (req, res, next) => {
+        logger.debug(res.payload);
+        User.findOne({ email: req.body.user.email })
+            .then((err, user) => {
+                if (err) logger.error(err);
+                logger.debug(user);
+                if (!user) return res.sendStatus(401);
+
+                //Push each update individually
+                if (typeof req.payload.password !== "undefined") {
+                    user.setPassword(res.payload.password);
+                }
+
+                if (typeof req.payload.email !== "undefined") {
+                    user.email = res.payload.email;
+                }
+
+                if (typeof req.payload.username !== "undefined") {
+                    user.username = res.payload.username;
+                }
+
+                if (typeof req.payload.bio !== "undefined") {
+                    user.bio = res.payload.bio;
+                }
+                if (typeof req.payload.image !== "undefined") {
+                    user.image = res.payload.image;
+                }
+
+                return user
+                    .save()
+                    .then(() => {
+                        return res.send({ user: user.getUser() });
+                    })
+                    .catch(next);
+            })
+            .catch(next);
     });
 
     //
     // ─── AUTHENTIFICATION ───────────────────────────────────────────────────────────
     //
     router.post("/users/login", (req, res) => {
-        logger.debug("Request body: " + req.body.toString());
-
         if (!req.body.user.email) {
             return res.status(422).json({
                 errors: {
@@ -67,23 +85,32 @@ module.exports = (express, logger) => {
                 },
             });
         }
-        // TODO: Get user from the database
-        return res.status(200).json({
-            user: {
-                email: req.body.user.email,
-                token: chance.guid(),
-                username: req.body.user.password,
-                bio: "Mios dio",
-                image: null,
-            },
+        User.findOne({ email: req.body.user.email }, (err, user) => {
+            if (err) logger.error(err);
+            if (user)
+                logger.debug(
+                    `User ${user.username} has hash ${user.hash}, has salt ${
+                        user.salt
+                    }`
+                );
+            if (!user) {
+                return res.json({
+                    error: { email: `Email ${req.body.user.email} is invalid` },
+                });
+            } else if (!user.verifyPassword(req.body.user.password)) {
+                return res.json({
+                    error: { password: "Password is incorrect" },
+                });
+            }
+            return res.json({ user: user.getUser() });
         });
     });
 
     //
     // ─── REGISTRATION ───────────────────────────────────────────────────────────────
     //
-    router.post("/users", (req, res) => {
-        logger.debug("Request body: " + req.body);
+    router.post("/users", (req, res, next) => {
+        logger.debug("Request body: " + req.payload);
 
         if (!req.body.user.password) {
             return res.status(422).json({
@@ -107,15 +134,26 @@ module.exports = (express, logger) => {
             });
         }
 
-        let user = new User({
-            email: req.body.user.email,
-            username: req.body.user.username,
-            bio: req.body.user.name || "Your bio here",
-            image: req.body.user.image || "null",
-        });
+        const user = new User();
+        user.email = req.body.user.email;
+        user.username = req.body.user.username;
+        user.bio = req.body.user.bio || "Your bio here";
+        user.image = req.body.user.image || "null";
+        user.hash = "sss";
+        logger.debug("Sent password is: " + req.body.user.password);
+        user.setPassword(req.body.user.password);
 
-        user.save().then(() => {
-            return res.json({ user: user });
+        logger.debug("Set password successfully");
+
+        user.save((err, user) => {
+            if (err) logger.error(err);
+            if (!err)
+                logger.debug(
+                    `User ${user.username} has hash ${user.hash}, has salt ${
+                        user.salt
+                    }`
+                );
+            return res.json({ user: user.getUser() });
         });
     });
 

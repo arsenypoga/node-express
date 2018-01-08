@@ -10,6 +10,7 @@ const chai = require("chai");
 const chaiHTTP = require("chai-http");
 const assert = require("assert");
 const Chance = require("chance");
+const logger = require("../logger.js");
 
 const chance = new Chance();
 const app = require("../app.js");
@@ -18,94 +19,34 @@ chai.use(chaiHTTP);
 
 const setMongoose = require("./index.test").setMongoose;
 
+const generateUser = () => ({
+    email: chance.email(),
+    password: chance.guid(),
+    username: chance.email().split("@", 1),
+});
+let responseUser;
+const newUser = generateUser();
+
 before(done => {
     setMongoose(done);
 });
 
 describe("/api/user", () => {
     //
-    // ─── AUTHENTIFICATION  ───────────────────────────────────────────────────────────
-    //
-
-    describe("GET /api/user", () => {
-        //TODO: add auth to the put /api/user, put get /api/user
-        it("should return user if authentificated", done => {
-            chai
-                .request(app)
-                .get("/api/user")
-                .end((err, res) => {
-                    getUser(res);
-                    done();
-                });
-        });
-        it.skip("should fail if not authentificated", done => {
-            chai.request(app);
-        });
-    });
-
-    describe("POST /api/users/login", () => {
-        it("should Successfully authentificates", done => {
-            chai
-                .request(app)
-                .post("/api/users/login")
-                .send({
-                    user: {
-                        email: chance.email(),
-                        password: chance.guid(),
-                    },
-                })
-                .end((err, res) => {
-                    getUser(res);
-                    done();
-                });
-        });
-        it("should return error if email is blank", done => {
-            chai
-                .request(app)
-                .post("/api/users/login")
-                .send({
-                    user: {
-                        password: "kappa",
-                    },
-                })
-                .end((err, res) => {
-                    unprocessableEntity(res, "email");
-                    done();
-                });
-        });
-        it("should return error if password is blank", done => {
-            chai
-                .request(app)
-                .post("/api/users/login")
-                .send({
-                    user: {
-                        email: chance.email(),
-                    },
-                })
-                .end((err, res) => {
-                    unprocessableEntity(res, "password");
-                    done();
-                });
-        });
-    });
-
-    //
     // ─── REGISTRATION ───────────────────────────────────────────────────────────────
     //
+
     describe("POST /api/users", () => {
         it("should successfully create a user", done => {
             chai
                 .request(app)
                 .post("/api/users")
                 .send({
-                    user: {
-                        email: chance.email(),
-                        password: chance.guid(),
-                        username: chance.email().split("@", 1),
-                    },
+                    user: newUser,
                 })
                 .end((err, res) => {
                     getUser(res);
+                    responseUser = res.user;
                     done();
                 });
         });
@@ -157,6 +98,76 @@ describe("/api/user", () => {
                 });
         });
     });
+    //
+    // ─── AUTHENTIFICATION  ───────────────────────────────────────────────────────────
+    //
+
+    describe("GET /api/user", () => {
+        //TODO: add auth to the put /api/user, put get /api/user
+        it("should return user if authentificated", done => {
+            chai
+                .request(app)
+                .get("/api/user")
+                .send({ user: responseUser })
+                .end((err, res) => {
+                    getUser(res);
+                    done();
+                });
+        });
+        it.skip("should fail if not authentificated", done => {
+            chai.request(app);
+        });
+    });
+
+    describe("POST /api/users/login", () => {
+        it("should Successfully authentificates", done => {
+            chai
+                .request(app)
+                .post("/api/users/login")
+                .send({
+                    user: {
+                        email: newUser.email,
+                        password: newUser.password,
+                    },
+                })
+                .end((err, res) => {
+                    getUser(res);
+                    done();
+                });
+        });
+        it("should return error if email is blank", done => {
+            chai
+                .request(app)
+                .post("/api/users/login")
+                .send({
+                    user: {
+                        password: newUser.password,
+                    },
+                })
+                .end((err, res) => {
+                    unprocessableEntity(res, "email");
+                    done();
+                });
+        });
+        it("should return error if password is blank", done => {
+            chai
+                .request(app)
+                .post("/api/users/login")
+                .send({
+                    user: {
+                        email: newUser.email,
+                    },
+                })
+                .end((err, res) => {
+                    unprocessableEntity(res, "password");
+                    done();
+                });
+        });
+    });
+
+    //
+    // ─── REGISTRATION ───────────────────────────────────────────────────────────────
+    //
 
     //
     // ─── UPDATE ─────────────────────────────────────────────────────────────────────
@@ -165,17 +176,7 @@ describe("/api/user", () => {
     describe("PUT /api/user", () => {
         it("should successfully update user if authentificated", done => {
             let appliedUser = {
-                user: {
-                    username: chance
-                        .email()
-                        .split("@", 1)
-                        .join(""),
-                    password: chance.guid(),
-                    bio: chance.string(),
-                    email: chance.email(),
-                    token: chance.guid(),
-                    image: "ks",
-                },
+                user: generateUser(),
             };
 
             chai

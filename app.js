@@ -13,12 +13,10 @@ const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const Chance = require("chance");
 const Mockgoose = require("mockgoose-fix").Mockgoose;
-//
-// ─── IMPORTING CONFIG FROM A PACKAGE ────────────────────────────────────────────
-//
-
 const pckg = require("./package.json");
-const mockgoose = new Mockgoose(mongoose);
+// Assigning app to express
+const app = express();
+const chance = new Chance();
 
 //
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
@@ -26,11 +24,35 @@ const mockgoose = new Mockgoose(mongoose);
 
 const logger = require("./logger.js");
 
-if (process.env.NODE_ENV == ("test" || "development")) {
+//
+// ─── REGISTER MONGOOSE MODELS ───────────────────────────────────────────────────
+//
+
+require("./models/User");
+
+if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     // Turn off logging if testing
-    logger.transports["console.debug"].silent = true;
-    mongoose.connect(pckg.urls.mongodb_test_url);
+    //logger.transports["console.debug"].silent = true;
+    mongoose.connect(pckg.urls.mongodb_test_url, err => {
+        err
+            ? logger.error("Connection failed", err)
+            : logger.info("Connected to the test database");
+    });
     mongoose.set("debug", true);
+    app.use(
+        morgan("dev", {
+            stream: logger.stream,
+        })
+    );
+}
+
+// Disable Logging if env is test
+if (process.env.NODE_ENV === "production") {
+    mongoose.connect(pckg.urls.mongodb_production_url, err => {
+        err
+            ? logger.error("Connection failed", err)
+            : logger.info("Connected to the production database");
+    });
 }
 //
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────
@@ -38,25 +60,11 @@ if (process.env.NODE_ENV == ("test" || "development")) {
 
 const index = require("./routes/index.js")(express, logger);
 
-// Assigning app to express
-const app = express();
-const chance = new Chance();
-
 let isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 3000;
-
 //
 // ─── SET UP MIDDLEWARE ──────────────────────────────────────────────────────────
 //
-
-// Disable Logging if env is test
-if (process.env.NODE_ENV !== "test") {
-    app.use(
-        morgan("dev", {
-            stream: logger.stream,
-        })
-    );
-}
 
 app.use(cors());
 app.use(
@@ -122,7 +130,9 @@ app.use((err, req, res, next) => {
 //
 
 app.listen(port, () => {
-    logger.info(`Server Started on ${port}`);
+    logger.info(
+        `Server Started on ${port}\n App is running in ${process.env.NODE_ENV}`
+    );
 });
 
 module.exports = app;
