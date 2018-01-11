@@ -24,7 +24,7 @@ const generateUser = () => ({
     password: chance.guid(),
     username: chance.email().split("@", 1),
 });
-let responseUser;
+let responseUser = {};
 const newUser = generateUser();
 
 before(done => {
@@ -33,6 +33,7 @@ before(done => {
 
 describe("/api/user", () => {
     //
+
     // ─── REGISTRATION ───────────────────────────────────────────────────────────────
     //
 
@@ -46,7 +47,8 @@ describe("/api/user", () => {
                 })
                 .end((err, res) => {
                     getUser(res);
-                    responseUser = res.user;
+
+                    responseUser = res.body;
                     done();
                 });
         });
@@ -108,27 +110,36 @@ describe("/api/user", () => {
             chai
                 .request(app)
                 .get("/api/user")
-                .send({ user: responseUser })
+                .send(responseUser)
                 .end((err, res) => {
                     getUser(res);
                     done();
                 });
         });
-        it.skip("should fail if not authentificated", done => {
-            chai.request(app);
+        it("should fail if not authentificated", done => {
+            chai
+                .request(app)
+                .get("/api/user")
+                .send({ user: generateUser })
+                .end((err, res) => {
+                    res.should.not.have.status(200);
+                    res.body.should.be.a("object");
+                    done();
+                });
         });
     });
 
     describe("POST /api/users/login", () => {
         it("should Successfully authentificates", done => {
+            let sentUser = {
+                email: newUser.email,
+                password: newUser.password,
+            };
             chai
                 .request(app)
                 .post("/api/users/login")
                 .send({
-                    user: {
-                        email: newUser.email,
-                        password: newUser.password,
-                    },
+                    user: sentUser,
                 })
                 .end((err, res) => {
                     getUser(res);
@@ -166,17 +177,21 @@ describe("/api/user", () => {
     });
 
     //
-    // ─── REGISTRATION ───────────────────────────────────────────────────────────────
-    //
-
-    //
     // ─── UPDATE ─────────────────────────────────────────────────────────────────────
     //
 
     describe("PUT /api/user", () => {
         it("should successfully update user if authentificated", done => {
             let appliedUser = {
-                user: generateUser(),
+                user: {
+                    email: chance.email(),
+                    password: chance.guid(),
+                    username: chance
+                        .email()
+                        .split("@", 1)
+                        .join(""),
+                    id: responseUser.user.id,
+                },
             };
 
             chai
@@ -198,6 +213,7 @@ const getUser = res => {
     res.body.should.be.a("object");
     res.body.should.have.property("user");
     res.body.user.should.have.property("email");
+    res.body.user.should.have.property("id");
     res.body.user.should.have.property("token");
     res.body.user.should.have.property("username");
     res.body.user.should.have.property("bio");

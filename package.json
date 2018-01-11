@@ -39,6 +39,6 @@
   "scripts": {
     "start": "NODE_NEV=production node app.js",
     "dev": "set NODE_ENV=development&& nodemon app.js",
-    "test": "NODE_ENV=test mocha --timeout=120000"
+    "test": "set NODE_ENV=test && mocha --timeout=120000"
   }
 }

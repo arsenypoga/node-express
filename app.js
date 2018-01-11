@@ -30,28 +30,36 @@ const logger = require("./logger.js");
 
 require("./models/User");
 
+if (process.env.NODE_ENV === "test") {
+    logger.transports["console.debug"].silent = false;
+    mongoose.set("debug", false);
+}
 if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     // Turn off logging if testing
-    //logger.transports["console.debug"].silent = true;
-    mongoose.connect(pckg.urls.mongodb_test_url, err => {
+    let currentURL = pckg.urls.mongodb_test_url;
+    mongoose.connect(currentURL, err => {
         err
             ? logger.error("Connection failed", err)
-            : logger.info("Connected to the test database");
+            : logger.info(`Connected to the ${currentURL} database`);
     });
-    mongoose.set("debug", true);
-    app.use(
-        morgan("dev", {
-            stream: logger.stream,
-        })
-    );
+    if (process.env.NODE_ENV == "development") {
+        mongoose.set("debug", true);
+
+        app.use(
+            morgan("dev", {
+                stream: logger.stream,
+            })
+        );
+    }
 }
 
 // Disable Logging if env is test
 if (process.env.NODE_ENV === "production") {
-    mongoose.connect(pckg.urls.mongodb_production_url, err => {
+    let currentURL = pckg.urls.mongodb_production_url;
+    mongoose.connect(currentURL, err => {
         err
             ? logger.error("Connection failed", err)
-            : logger.info("Connected to the production database");
+            : logger.info(`Connected to the {currentURL} database`);
     });
 }
 //

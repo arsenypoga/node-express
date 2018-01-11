@@ -18,6 +18,7 @@ module.exports = (express, logger) => {
     router.get("/user", (req, res, next) => {
         User.findOne({ email: req.body.user.email })
             .then(user => {
+                logger.debug(req.body);
                 if (!user) return res.sendStatus(401);
                 return res.json({ user: user.getUser() });
             })
@@ -29,48 +30,46 @@ module.exports = (express, logger) => {
     //
 
     router.put("/user", (req, res, next) => {
-        logger.debug(res.payload);
-        User.findOne({ email: req.body.user.email })
-            .then((err, user) => {
-                if (err) logger.error(err);
-                logger.debug(user);
-                if (!user) return res.sendStatus(401);
+        User.findById(req.body.user.id, (err, user) => {
+            if (err) logger.error(err);
+            if (!user) return res.sendStatus(401);
 
-                //Push each update individually
-                if (typeof req.payload.password !== "undefined") {
-                    user.setPassword(res.payload.password);
-                }
+            //Push each update individually
+            if (typeof req.body.password !== "undefined") {
+                user.setPassword(res.body.password);
+            }
 
-                if (typeof req.payload.email !== "undefined") {
-                    user.email = res.payload.email;
-                }
+            if (typeof req.body.email !== "undefined") {
+                user.email = res.body.email;
+            }
 
-                if (typeof req.payload.username !== "undefined") {
-                    user.username = res.payload.username;
-                }
+            if (typeof req.body.username !== "undefined") {
+                user.username = res.body.username;
+            }
 
-                if (typeof req.payload.bio !== "undefined") {
-                    user.bio = res.payload.bio;
-                }
-                if (typeof req.payload.image !== "undefined") {
-                    user.image = res.payload.image;
-                }
+            if (typeof req.body.bio !== "undefined") {
+                user.bio = res.body.bio;
+            }
+            if (typeof req.body.image !== "undefined") {
+                user.image = res.body.image;
+            }
 
-                return user
-                    .save()
-                    .then(() => {
-                        return res.send({ user: user.getUser() });
-                    })
-                    .catch(next);
-            })
-            .catch(next);
+            return user
+                .save()
+                .then(() => {
+                    return res.send({ user: user.getUser() });
+                })
+                .catch(next);
+        });
     });
 
     //
     // ─── AUTHENTIFICATION ───────────────────────────────────────────────────────────
     //
     router.post("/users/login", (req, res) => {
+        logger.debug(req.body);
         if (!req.body.user.email) {
+            logger.error("No email : `" + req.body.user);
             return res.status(422).json({
                 errors: {
                     email: "can't be blank",
@@ -97,12 +96,12 @@ module.exports = (express, logger) => {
                 return res.json({
                     error: { email: `Email ${req.body.user.email} is invalid` },
                 });
-            } else if (!user.verifyPassword(req.body.user.password)) {
-                return res.json({
-                    error: { password: "Password is incorrect" },
-                });
             }
-            return res.json({ user: user.getUser() });
+            user.verifyPassword(req.body.user.password, (err, isMatch) => {
+                if (isMatch) {
+                    return res.json({ user: user.getUser() });
+                }
+            });
         });
     });
 
@@ -110,8 +109,6 @@ module.exports = (express, logger) => {
     // ─── REGISTRATION ───────────────────────────────────────────────────────────────
     //
     router.post("/users", (req, res, next) => {
-        logger.debug("Request body: " + req.payload);
-
         if (!req.body.user.password) {
             return res.status(422).json({
                 errors: {
@@ -139,7 +136,6 @@ module.exports = (express, logger) => {
         user.username = req.body.user.username;
         user.bio = req.body.user.bio || "Your bio here";
         user.image = req.body.user.image || "null";
-        user.hash = "sss";
         logger.debug("Sent password is: " + req.body.user.password);
         user.setPassword(req.body.user.password);
 

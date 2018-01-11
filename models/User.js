@@ -30,17 +30,13 @@ const UserSchema = new mongoose.Schema(
 // Add plugin for the
 //UserSchema.plugin(uniqueValidator, { message: "is already taken" });
 
-UserSchema.methods.verifyPassword = function(password) {
+UserSchema.methods.verifyPassword = function(password, callback) {
     logger.debug("Verifying Password...");
     logger.debug(this.hash);
     logger.debug(password);
 
     bcrypt.compare(password, this.hash, (err, res) => {
-        logger.debug(
-            res ? "Password matches hash" : "Password doesn't match hash"
-        );
-        if (err) logger.error(err);
-        return !err ? res : err;
+        callback(null, res);
     });
 };
 
@@ -92,6 +88,7 @@ UserSchema.methods.getUser = function() {
         bio: this.bio,
         image: this.image,
         token: this.generateJWT(),
+        id: this._id,
     };
 };
 
