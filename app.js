@@ -29,6 +29,8 @@ const logger = require("./logger.js");
 //
 
 require("./models/User");
+require("./models/Article");
+require("./models/Comment");
 
 if (process.env.NODE_ENV === "test") {
     logger.transports["console.debug"].silent = false;

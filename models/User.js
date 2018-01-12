@@ -23,6 +23,8 @@ const UserSchema = new mongoose.Schema(
         image: String,
         salt: { type: String, required: [true, "can't be blank"] },
         hash: { type: String, required: [true, "can't be blank"] },
+        following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        favorite: [{ type: mongoose.Schema.Types.ObjectId, ref: "Article" }],
     },
     { timestamps: true }
 );
@@ -90,6 +92,34 @@ UserSchema.methods.getUser = function() {
         token: this.generateJWT(),
         id: this._id,
     };
+};
+UserSchema.methods.getProfile = function(user) {
+    return {
+        profile: {
+            username: this.username,
+            bio: this.bio,
+            image: this.image,
+            following: user ? user.isFollowing(user._id) : false,
+        },
+    };
+};
+
+UserSchema.methods.follow = function(id) {
+    if (this.following.indexOf(id) === -1) {
+        this.following.push(id);
+    }
+    return this.save();
+};
+
+UserSchema.methods.unfollow = function(id) {
+    this.following.remove(id);
+    return this.save();
+};
+
+UserSchema.methods.isFollowing = function(id) {
+    return this.following.some(userid => {
+        return userid.toString() === id.toString();
+    });
 };
 
 module.exports = mongoose.model("User", UserSchema);
