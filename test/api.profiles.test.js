@@ -7,9 +7,8 @@ process.env.NODE_ENV = "test";
 const chai = require("chai");
 const chaiHTTP = require("chai-http");
 const assert = require("assert");
-const Chance = require("chance");
+const faker = require("faker");
 
-const chance = new Chance();
 const app = require("../app.js");
 let should = chai.should();
 chai.use(chaiHTTP);
@@ -22,7 +21,7 @@ describe("/api/profiles", () => {
         it("should return profile", done => {
             chai
                 .request(app)
-                .get("/api/profiles/" + chance.email().split("@", 1))
+                .get("/api/profiles/" + faker.internet.userName())
                 .end((err, res) => {
                     getProfile(res);
                     done();
@@ -38,9 +37,7 @@ describe("/api/profiles", () => {
         it("should return profile", done => {
             chai
                 .request(app)
-                .post(
-                    "/api/profiles/" + chance.email().split("@", 1) + "/follow"
-                )
+                .post("/api/profiles/" + faker.internet.userName() + "/follow")
                 .end((req, res) => {
                     getProfile(res);
                     done();
@@ -55,7 +52,7 @@ describe("/api/profiles", () => {
             chai
                 .request(app)
                 .delete(
-                    "/api/profiles/" + chance.email().split("@", 1) + "/follow"
+                    "/api/profiles/" + faker.internet.userName() + "/follow"
                 )
                 .end((req, res) => {
                     getProfile(res);
@@ -77,3 +74,4 @@ const getProfile = res => {
     profilePropertyPair(res, "image", "string");
     profilePropertyPair(res, "following", "boolean");
 };
+module.exports.getProfile = getProfile;

@@ -99,11 +99,11 @@ UserSchema.methods.getProfile = function(user) {
             username: this.username,
             bio: this.bio,
             image: this.image,
-            following: user ? user.isFollowing(user._id) : false,
+            following: false,
         },
     };
 };
-
+//user ? user.isFollowing(user._id) :
 UserSchema.methods.follow = function(id) {
     if (this.following.indexOf(id) === -1) {
         this.following.push(id);

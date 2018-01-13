@@ -77,11 +77,10 @@ module.exports = (express, logger) => {
             .then(data => {
                 let articles = data[0];
                 let count = data[1];
-                logger.debug(articles, data);
 
                 return res.json({
                     articles: articles.map(article => {
-                        return article.getArticle(false);
+                        return article.getArticle(article.user);
                     }),
                     articlesCount: count,
                 });
@@ -104,17 +103,20 @@ module.exports = (express, logger) => {
     // ─── CREATE ARTICLE ─────────────────────────────────────────────────────────────
     //
     router.post("/", (req, res, next) => {
+        logger.debug(req.body);
+        logger.debug(req.body.payload.id);
         User.findById(req.body.payload.id)
-            .then(data => {
-                logger.debug(req.body);
-                if (!data) return res.sendStatus(401);
+            .then(user => {
+                if (!user) logger.error(user);
 
-                let article = new Article(req.body.article);
+                const article = new Article(req.body.article);
 
-                article.author = data;
+                article.author = user;
 
-                return article.save().then(() => {
-                    return res.json({ article: article.getArticle(data) });
+                article.save((err, data) => {
+                    if (err) logger.error(err);
+                    if (!err)
+                        return res.json({ article: data.getArticle(user) });
                 });
             })
             .catch(next);

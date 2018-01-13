@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const slug = require("slug");
+const logger = require("../logger");
 
 const User = require("./User");
 
@@ -40,7 +41,7 @@ ArticleSchema.methods.getArticle = function(user) {
         tagList: this.tagList,
         favorited: false,
         favoritesCount: this.favoritesCount,
-        author: this.author.getUser(user),
+        author: this.author.getProfile(user),
     };
 };
 

@@ -18,7 +18,6 @@ module.exports = (express, logger) => {
     router.get("/user", (req, res, next) => {
         User.findOne({ email: req.body.user.email })
             .then(user => {
-                logger.debug(req.body);
                 if (!user) return res.sendStatus(401);
                 return res.json({ user: user.getUser() });
             })

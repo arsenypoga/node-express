@@ -106,7 +106,7 @@ app.use(
 );
 
 // If dev use errorhadler
-if (!isProduction) app.use(errorhandler());
+if (process.env.NODE_ENV === "test") app.use(errorhandler());
 
 //
 // ─── ERROR HANDLING IN PRODUCTION ───────────────────────────────────────────────

@@ -9,10 +9,9 @@ process.env.NODE_ENV = "test";
 const chai = require("chai");
 const chaiHTTP = require("chai-http");
 const assert = require("assert");
-const Chance = require("chance");
+const faker = require("faker");
 const logger = require("../logger.js");
 
-const chance = new Chance();
 const app = require("../app.js");
 let should = chai.should();
 chai.use(chaiHTTP);
@@ -20,9 +19,9 @@ chai.use(chaiHTTP);
 const setMongoose = require("./index.test").setMongoose;
 
 const generateUser = () => ({
-    email: chance.email(),
-    password: chance.guid(),
-    username: chance.email().split("@", 1),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    username: faker.internet.userName(),
 });
 let responseUser = {};
 const newUser = generateUser();
@@ -59,8 +58,8 @@ describe("/api/user", () => {
                 .post("/api/users")
                 .send({
                     user: {
-                        password: chance.guid(),
-                        username: chance.email().split("@", 1),
+                        password: faker.internet.password(),
+                        username: faker.internet.userName(),
                     },
                 })
                 .end((err, res) => {
@@ -74,8 +73,8 @@ describe("/api/user", () => {
                 .post("/api/users")
                 .send({
                     user: {
-                        email: chance.email(),
-                        username: chance.email().split("@", 1),
+                        email: faker.internet.email(),
+                        username: faker.internet.userName(),
                     },
                 })
                 .end((err, res) => {
@@ -90,8 +89,8 @@ describe("/api/user", () => {
                 .post("/api/users")
                 .send({
                     user: {
-                        email: chance.email(),
-                        password: chance.guid(),
+                        email: faker.internet.email(),
+                        password: faker.internet.password(),
                     },
                 })
                 .end((err, res) => {
@@ -184,12 +183,9 @@ describe("/api/user", () => {
         it("should successfully update user if authentificated", done => {
             let appliedUser = {
                 user: {
-                    email: chance.email(),
-                    password: chance.guid(),
-                    username: chance
-                        .email()
-                        .split("@", 1)
-                        .join(""),
+                    email: faker.internet.email(),
+                    password: faker.internet.password(),
+                    username: faker.internet.userName(),
                     id: responseUser.user.id,
                 },
             };
@@ -226,4 +222,14 @@ const unprocessableEntity = (res, property) => {
     res.body.should.have.property("errors");
     res.body.errors.should.have.property(property);
     res.body.errors[property].length.should.be.gt(0);
+};
+
+response = {
+    article: {
+        title: "voluptas neque minus",
+        description: "Dolorem alias omnis veritatis.",
+        body:
+            "Autem et voluptas corporis sint consequatur aut. Maiores perferendis tempora debitis enim velit reprehenderit. Cupiditate nihil ut labore possimus. Ab porro perspiciatis in facilis voluptatem nemo dolores.\n \rAutem suscipit ad est fugiat fuga recusandae. Voluptatum excepturi et nisi nulla consequatur voluptas rerum. Vel minima quasi rerum ut sequi. Cum quae ipsum iste voluptatem cupiditate. Pariatur incidunt ullam recusandae voluptatum ullam qui reprehenderit aut qui. Non veritatis nemo rerum sint.\n \rSoluta at veniam. Quod et dicta dolor adipisci minima laboriosam molestiae repellendus. Earum veniam accusantium dolorum nisi sit. Rerum quidem doloremque eaque minima odit et ut possimus. Quisquam quia incidunt aliquid. Voluptatem et ex hic nihil doloribus eos omnis cupiditate.",
+    },
+    payload: { id: "5a56a1127eeabb475c769313" },
 };
