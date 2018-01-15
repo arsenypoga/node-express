@@ -1,8 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import { sign } from "jsonwebtoken";
 //const uniqueValidator = require("mongoose-unique-validator");
-const crypto = require("crypto");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import { genSaltSync, hashSync, compare } from "bcrypt";
 const logger = require("../logger.js");
 
 const UserSchema = new mongoose.Schema(
@@ -37,7 +36,7 @@ UserSchema.methods.verifyPassword = function(password, callback) {
     logger.debug(this.hash);
     logger.debug(password);
 
-    bcrypt.compare(password, this.hash, (err, res) => {
+    compare(password, this.hash, (err, res) => {
         callback(null, res);
     });
 };
@@ -55,8 +54,8 @@ UserSchema.methods.setPassword = function(password) {
             logger.debug(this.hash);
         });
     }); */
-    this.salt = bcrypt.genSaltSync(256);
-    this.hash = bcrypt.hashSync(password, this.salt);
+    this.salt = genSaltSync(256);
+    this.hash = hashSync(password, this.salt);
 
     //this.salt = crypto.randomBytes(16).toString("hex");
     /*this.hash = crypto
@@ -72,7 +71,7 @@ UserSchema.methods.generateJWT = function() {
     let exp = new Date(now);
     exp.setDate(now.getDate() + 60);
 
-    return jwt.sign(
+    return sign(
         {
             id: this._id,
             username: this.username,
@@ -95,12 +94,10 @@ UserSchema.methods.getUser = function() {
 };
 UserSchema.methods.getProfile = function(user) {
     return {
-        profile: {
-            username: this.username,
-            bio: this.bio,
-            image: this.image,
-            following: false,
-        },
+        username: this.username,
+        bio: this.bio,
+        image: this.image,
+        following: false,
     };
 };
 //user ? user.isFollowing(user._id) :

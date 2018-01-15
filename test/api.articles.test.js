@@ -1,30 +1,34 @@
 process.env.NODE_ENV = "test";
-const chai = require("chai");
-const chaiHTTP = require("chai-http");
-const assert = require("assert");
+import chai from "chai";
+import chaiHTTP from "chai-http";
+import chaiJsonPattern from "chai-json-pattern";
 
-const faker = require("faker");
+import faker from "faker";
 
-const app = require("../app.js");
+const app = require("../src/app");
+const getProfile = require("./api.profiles.test").getProfile;
+let expect = chai.expect;
 let should = chai.should();
+
 chai.use(chaiHTTP);
+chai.use(chaiJsonPattern);
 
 const mockArticle = () => {
-    article = {
+    const dataGenerated = {
         article: {
             title: faker.lorem.words(),
             description: faker.lorem.sentence(),
             body: faker.lorem.paragraphs(),
-            tagList: [
-                faker.lorem.string(),
-                faker.lorem.string(),
-                faker.lorem.string(),
-                faker.lorem.string(),
-            ],
+            tagList: [],
         },
         payload: { id: "5a56a1127eeabb475c769313" },
     };
-    return article;
+
+    for (let i = 0; i <= Math.round(Math.random() * 20); i++) {
+        dataGenerated.article.tagList.push(faker.lorem.word());
+    }
+
+    return dataGenerated;
 };
 
 describe("/api/articles", () => {
@@ -33,55 +37,76 @@ describe("/api/articles", () => {
             chai
                 .request(app)
                 .post("/api/articles")
-                .send({
-                    article: {
-                        title: faker.lorem.words(),
-                        description: faker.lorem.sentence(),
-                        body: faker.lorem.paragraphs(),
-                        tagList: [
-                            faker.lorem.word(),
-                            faker.lorem.word(),
-                            faker.lorem.word(),
-                            faker.lorem.word(),
-                        ],
-                    },
-                    payload: { id: "5a56a1127eeabb475c769313" },
-                })
+                .send(mockArticle())
                 .end((err, res) => {
-                    console.log(res);
-                    if (err) console.log(err);
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(responseArticle());
+                    done();
+                });
+        });
+    });
+
+    describe("GET /api/articles", () => {
+        it("should return list of default articles", done => {
+            chai
+                .request(app)
+                .get("/api/articles")
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(
+                        multipleResponseArticles()
+                    );
                     done();
                 });
         });
     });
 });
 
-const responseArticle = res => {
-    res.should.have.status(200);
-    res.should.be.a("object");
-    res.should.have.property("article");
-    articlePropertyPair(res, "slug", "string");
-    articlePropertyPair(res, "title", "string");
-    articlePropertyPair(res, "description", "string");
-    articlePropertyPair(res, "body", "string");
-    articlePropertyPair(res, "tagList", "array");
-    res.body.article.tagList.contains.all("string");
-    articlePropertyPair(res, "createdAt", "string");
-    articlePropertyPair(res, "updatedAt", "string");
-    articlePropertyPair(res, "favored", "boolean");
-    articlePropertyPair(res, "favoritesCount", "number");
-    articlePropertyPair(res, "author", "object");
-    res.body.article.author.should.have.property("username");
-    res.body.article.author.username.should.be.a("string");
-    res.body.article.author.should.have.property("bio");
-    res.body.article.author.username.should.be.a("string");
-    res.body.article.author.should.have.property("image");
-    res.body.article.author.username.should.be.a("string");
-    res.body.article.author.should.have.property("following");
-    res.body.article.author.username.should.be.a("boolean");
+const multipleResponseArticles = () => {
+    return `{
+        "articles": [
+            {
+                "slug": String,
+                "title": String,
+                "description": String,
+                "body": String,
+                "tagList": [String, ...],
+                "createdAt": String,
+                "updatedAt": String,
+                "favorited": Boolean,
+                "favoritesCount": Number,
+                "author": {
+                    "username": String,
+                    "bio": String,
+                    "image": String,
+                    "following": Boolean
+                }
+            },
+            ...
+        ],
+        "articlesCount": Number,
+    }`;
 };
 
-const articlePropertyPair = (res, name, type) => {
-    res.body.article.should.have.property(name);
-    res.body.article[name].should.be.a(type);
+const responseArticle = () => {
+    return `{
+        "article": {
+            "slug": String,
+            "title": String,
+            "description": String,
+            "body": String,
+            "tagList": [String, ... ],
+            "createdAt": String, 
+            "updatedAt": String,
+            "favorited": Boolean,
+            "favoritesCount": Number,
+            "author": {
+                "username": String,
+                "bio": String,
+                "image": String,
+                "following": Boolean
+            }
+    }
+    }`;
 };

@@ -4,13 +4,16 @@
 // ────────────────────────────────────────────────────────────────────────────────────
 //
 process.env.NODE_ENV = "test";
-const chai = require("chai");
-const chaiHTTP = require("chai-http");
-const assert = require("assert");
-const faker = require("faker");
+import chai from "chai";
+import chaiHTTP from "chai-http";
+import chaiJsonPattern from "chai-json-pattern";
 
-const app = require("../app.js");
+import faker from "faker";
+
+const app = require("../src/app");
+let expect = chai.expect;
 let should = chai.should();
+
 chai.use(chaiHTTP);
 
 describe("/api/profiles", () => {
@@ -23,7 +26,10 @@ describe("/api/profiles", () => {
                 .request(app)
                 .get("/api/profiles/" + faker.internet.userName())
                 .end((err, res) => {
-                    getProfile(res);
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    //expect(res.body).to.matchPattern(getProfile());
+
                     done();
                 });
         });
@@ -38,8 +44,12 @@ describe("/api/profiles", () => {
             chai
                 .request(app)
                 .post("/api/profiles/" + faker.internet.userName() + "/follow")
-                .end((req, res) => {
-                    getProfile(res);
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    //expect(res.body).to.matchPattern(getProfile());
+
+                    //expect(res.body).to.matchPattern(getProfile());
                     done();
                 });
         });
@@ -54,24 +64,27 @@ describe("/api/profiles", () => {
                 .delete(
                     "/api/profiles/" + faker.internet.userName() + "/follow"
                 )
-                .end((req, res) => {
-                    getProfile(res);
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    //expect(res.body).to.matchPattern(getProfile());
+
+                    //expect(res.body).to.matchPattern(getProfile());
+
                     done();
                 });
         });
     });
 });
-const profilePropertyPair = (res, name, type) => {
-    res.body.profile.should.have.property(name);
-    res.body.profile[name].should.be.a(type);
-};
 
-const getProfile = res => {
-    res.body.should.be.a("object");
-    res.body.should.have.property("profile");
-    profilePropertyPair(res, "username", "string");
-    profilePropertyPair(res, "bio", "string");
-    profilePropertyPair(res, "image", "string");
-    profilePropertyPair(res, "following", "boolean");
+const getProfile = () => {
+    return `{
+        "profile": {
+            "username": String,
+            "bio": String,
+            "image": String,
+            "following": String
+        }
+    }`;
 };
 module.exports.getProfile = getProfile;

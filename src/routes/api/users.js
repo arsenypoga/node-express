@@ -3,9 +3,8 @@
 //   :::::: U S E R S   R O U T E S : :  :   :    :     :        :          :
 // ──────────────────────────────────────────────────────────────────────────
 //
-const Chance = require("chance");
-const chance = Chance();
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+
 const User = mongoose.model("User");
 
 module.exports = (express, logger) => {

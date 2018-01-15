@@ -3,7 +3,7 @@
 //   :::::: P A C K A G E S : :  :   :    :     :        :          :
 // ──────────────────────────────────────────────────────────────────
 //
-const bodyParser = require("body-parser");
+/* const bodyParser = require("body-parser");
 const cors = require("cors");
 const errorhandler = require("errorhandler");
 const express = require("express");
@@ -11,13 +11,21 @@ const expressSession = require("express-session");
 const morgan = require("morgan");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
-const Chance = require("chance");
 const Mockgoose = require("mockgoose-fix").Mockgoose;
-const pckg = require("./package.json");
-// Assigning app to express
-const app = express();
-const chance = new Chance();
 
+ */
+// Assigning app to express
+import  bodyParser  from "body-parser";
+import cors from "cors";
+import  errorhandler  from "errorhandler";
+import express from "express";
+import  expressSession from "express-session";
+import morgan from "morgan";
+import  mongoose  from "mongoose";
+import  { urls }  from "./../package.json";
+
+const app = express ();
+const bcrypt = require("bcrypt");
 //
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
 //
@@ -32,18 +40,21 @@ require("./models/User");
 require("./models/Article");
 require("./models/Comment");
 
+
 if (process.env.NODE_ENV === "test") {
-    logger.transports["console.debug"].silent = false;
+    logger.transports["console.debug"].silent = true;
     mongoose.set("debug", false);
 }
 if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     // Turn off logging if testing
-    let currentURL = pckg.urls.mongodb_test_url;
-    mongoose.connect(currentURL, err => {
-        err
-            ? logger.error("Connection failed", err)
-            : logger.info(`Connected to the ${currentURL} database`);
-    });
+    let currentURL = urls.mongodb_test_url;
+    
+        mongoose.connect(currentURL, err => {
+            err
+                ? logger.error("Connection failed", err)
+                : logger.info(`Connected to the ${currentURL} database`);
+        });
+ 
     if (process.env.NODE_ENV == "development") {
         mongoose.set("debug", true);
 
@@ -57,12 +68,12 @@ if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
 
 // Disable Logging if env is test
 if (process.env.NODE_ENV === "production") {
-    let currentURL = pckg.urls.mongodb_production_url;
+    let currentURL = urls.mongodb_production_url;
     mongoose.connect(currentURL, err => {
         err
             ? logger.error("Connection failed", err)
             : logger.info(`Connected to the {currentURL} database`);
-    });
+        });
 }
 //
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────
@@ -70,7 +81,6 @@ if (process.env.NODE_ENV === "production") {
 
 const index = require("./routes/index.js")(express, logger);
 
-let isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 3000;
 //
 // ─── SET UP MIDDLEWARE ──────────────────────────────────────────────────────────
@@ -83,7 +93,6 @@ app.use(
     })
 );
 app.use(bodyParser.json());
-app.use(methodOverride());
 
 // app.use(express.static())
 
@@ -96,7 +105,7 @@ app.use("/", index);
 // Set up express-session
 app.use(
     expressSession({
-        secret: chance.guid(),
+        secret: bcrypt.genSaltSync(16),
         cookie: {
             maxAge: 60000,
         },
@@ -141,7 +150,7 @@ app.use((err, req, res, next) => {
 
 app.listen(port, () => {
     logger.info(
-        `Server Started on ${port}\n App is running in ${process.env.NODE_ENV}`
+        `Server Started on ${port} App is running in ${process.env.NODE_ENV}`
     );
 });
 

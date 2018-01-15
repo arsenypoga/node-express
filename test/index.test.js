@@ -1,11 +1,15 @@
 // Force env to be test as fast as possible
 process.env.NODE_ENV = "test";
-const chai = require("chai");
-const chaiHTTP = require("chai-http");
-const assert = require("assert");
+import chai from "chai";
+import chaiHTTP from "chai-http";
+import chaiJsonPattern from "chai-json-pattern";
 
-const app = require("../app.js");
+import faker from "faker";
+
+const app = require("../src/app");
+let expect = chai.expect;
 let should = chai.should();
+
 chai.use(chaiHTTP);
 
 const Mockgoose = require("mockgoose-fix").Mockgoose;

@@ -24,7 +24,6 @@
         "mocha/max-top-level-suites": "warn",
         "mocha/no-global-tests": "warn",
         "mocha/no-hooks-for-single-case": "warn",
-        "mocha/disallow-hooks": "warn",
         "mocha/no-identical-title": "warn",
         "mocha/no-nested-tests": "warn",
         "mocha/no-synchronous-tests": "warn"

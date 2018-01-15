@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const slug = require("slug");
+import mongoose from 'mongoose';
+import slug from 'slug';
+
 const logger = require("../logger");
 
 const User = require("./User");
@@ -31,6 +32,8 @@ ArticleSchema.methods.slugify = function() {
 };
 
 ArticleSchema.methods.getArticle = function(user) {
+    logger.debug(JSON.stringify(this.author.id));
+
     return {
         slug: this.slug,
         title: this.title,

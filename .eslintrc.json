@@ -18,11 +18,11 @@
         "no-unreachable": "warn",
         "no-unused-vars": "warn",
         "constructor-super": "warn",
-        "valid-typeof": "warn",
-        "node/no-unpublished-require": ["error", {"allowModules": ["mockgoose"]}]
+        "valid-typeof": "warn"
+        
     },
     "plugins": [
-        "node"
+        "babel"
     ],
-    "extends": ["eslint:recommended", "plugin:node/recommended"]
+    "extends": ["eslint:recommended", "plugin/node:recommended"] 
 }

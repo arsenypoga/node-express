@@ -6,14 +6,17 @@
 
 // Force env to be test as fast as possible
 process.env.NODE_ENV = "test";
-const chai = require("chai");
-const chaiHTTP = require("chai-http");
-const assert = require("assert");
-const faker = require("faker");
-const logger = require("../logger.js");
+import chai from "chai";
+import chaiHTTP from "chai-http";
+import chaiJsonPattern from "chai-json-pattern";
 
-const app = require("../app.js");
+import faker from "faker";
+
+const app = require("../src/app");
+
+let expect = chai.expect;
 let should = chai.should();
+
 chai.use(chaiHTTP);
 
 const setMongoose = require("./index.test").setMongoose;
@@ -222,14 +225,4 @@ const unprocessableEntity = (res, property) => {
     res.body.should.have.property("errors");
     res.body.errors.should.have.property(property);
     res.body.errors[property].length.should.be.gt(0);
-};
-
-response = {
-    article: {
-        title: "voluptas neque minus",
-        description: "Dolorem alias omnis veritatis.",
-        body:
-            "Autem et voluptas corporis sint consequatur aut. Maiores perferendis tempora debitis enim velit reprehenderit. Cupiditate nihil ut labore possimus. Ab porro perspiciatis in facilis voluptatem nemo dolores.\n \rAutem suscipit ad est fugiat fuga recusandae. Voluptatum excepturi et nisi nulla consequatur voluptas rerum. Vel minima quasi rerum ut sequi. Cum quae ipsum iste voluptatem cupiditate. Pariatur incidunt ullam recusandae voluptatum ullam qui reprehenderit aut qui. Non veritatis nemo rerum sint.\n \rSoluta at veniam. Quod et dicta dolor adipisci minima laboriosam molestiae repellendus. Earum veniam accusantium dolorum nisi sit. Rerum quidem doloremque eaque minima odit et ut possimus. Quisquam quia incidunt aliquid. Voluptatem et ex hic nihil doloribus eos omnis cupiditate.",
-    },
-    payload: { id: "5a56a1127eeabb475c769313" },
 };

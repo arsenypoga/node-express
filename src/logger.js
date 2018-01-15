@@ -1,5 +1,5 @@
-const winston = require('winston');
-const chalk = require('chalk');
+import winston from 'winston'
+import { chalk } from "chalk";
 const level = process.env.LOG_LEVEL || 'debug';
 
 

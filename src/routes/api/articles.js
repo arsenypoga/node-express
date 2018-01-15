@@ -2,9 +2,8 @@
 //   :::::: A R T I C L E S    R O U T E S : :  :   :    :     :        :          :
 // ──────────────────────────────────────────────────────────────────────────
 //
-const Chance = require("chance");
-const chance = Chance();
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
+
 const Article = mongoose.model("Article");
 const Comment = mongoose.model("Comment");
 const User = mongoose.model("User");
@@ -53,7 +52,7 @@ module.exports = (express, logger) => {
         }
 
         if (typeof req.query.offset !== "undefined") {
-            offset = req.query.offset;
+            offset = Number(req.query.offset);
         }
 
         if (typeof req.query.tag !== "undefined") {
@@ -69,7 +68,8 @@ module.exports = (express, logger) => {
         Promise.all([
             Article.find(query)
                 .limit(limit)
-                .skip(Number(offset))
+                .skip(offset)
+                .populate("author")
                 .sort({ createdAt: "desc" })
                 .exec(),
             Article.count(query).exec(),
@@ -77,16 +77,16 @@ module.exports = (express, logger) => {
             .then(data => {
                 let articles = data[0];
                 let count = data[1];
-
+                logger.debug("Articles: " + JSON.stringify(articles));
+                logger.debug("Articles: " + JSON.stringify(count));
                 return res.json({
                     articles: articles.map(article => {
-                        return article.getArticle(article.user);
+                        return article.getArticle(null);
                     }),
                     articlesCount: count,
                 });
             })
             .catch(next);
-        res.sendStatus(200);
     });
 
     //
@@ -103,8 +103,6 @@ module.exports = (express, logger) => {
     // ─── CREATE ARTICLE ─────────────────────────────────────────────────────────────
     //
     router.post("/", (req, res, next) => {
-        logger.debug(req.body);
-        logger.debug(req.body.payload.id);
         User.findById(req.body.payload.id)
             .then(user => {
                 if (!user) logger.error(user);
