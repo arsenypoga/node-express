@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import slug from 'slug';
+import mongoose from "mongoose";
+import slug from "slug";
 
 const logger = require("../logger");
 

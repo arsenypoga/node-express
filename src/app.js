@@ -15,16 +15,16 @@ const Mockgoose = require("mockgoose-fix").Mockgoose;
 
  */
 // Assigning app to express
-import  bodyParser  from "body-parser";
+import bodyParser from "body-parser";
 import cors from "cors";
-import  errorhandler  from "errorhandler";
+import errorhandler from "errorhandler";
 import express from "express";
-import  expressSession from "express-session";
+import expressSession from "express-session";
 import morgan from "morgan";
-import  mongoose  from "mongoose";
-import  { urls }  from "./../package.json";
+import mongoose from "mongoose";
+import { urls } from "./../package.json";
 
-const app = express ();
+const app = express();
 const bcrypt = require("bcrypt");
 //
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
@@ -40,7 +40,6 @@ require("./models/User");
 require("./models/Article");
 require("./models/Comment");
 
-
 if (process.env.NODE_ENV === "test") {
     logger.transports["console.debug"].silent = true;
     mongoose.set("debug", false);
@@ -48,14 +47,14 @@ if (process.env.NODE_ENV === "test") {
 if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     // Turn off logging if testing
     let currentURL = urls.mongodb_test_url;
-    
-        mongoose.connect(currentURL, err => {
-            err
-                ? logger.error("Connection failed", err)
-                : logger.info(`Connected to the ${currentURL} database`);
-        });
- 
-    if (process.env.NODE_ENV == "development") {
+
+    mongoose.connect(currentURL, err => {
+        err
+            ? logger.error("Connection failed", err)
+            : logger.info(`Connected to the ${currentURL} database`);
+    });
+
+    if (process.env.NODE_ENV === "development") {
         mongoose.set("debug", true);
 
         app.use(
@@ -73,7 +72,7 @@ if (process.env.NODE_ENV === "production") {
         err
             ? logger.error("Connection failed", err)
             : logger.info(`Connected to the {currentURL} database`);
-        });
+    });
 }
 //
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────

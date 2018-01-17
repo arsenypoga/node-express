@@ -22,7 +22,7 @@
         
     },
     "plugins": [
-        "babel"
+        "babel", "node"
     ],
-    "extends": ["eslint:recommended", "plugin/node:recommended"] 
+    "extends": ["eslint:recommended" ] 
 }

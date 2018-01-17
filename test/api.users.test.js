@@ -19,8 +19,6 @@ let should = chai.should();
 
 chai.use(chaiHTTP);
 
-const setMongoose = require("./index.test").setMongoose;
-
 const generateUser = () => ({
     email: faker.internet.email(),
     password: faker.internet.password(),
@@ -28,10 +26,6 @@ const generateUser = () => ({
 });
 let responseUser = {};
 const newUser = generateUser();
-
-before(done => {
-    setMongoose(done);
-});
 
 describe("/api/user", () => {
     //

@@ -61,6 +61,24 @@ describe("/api/articles", () => {
                 });
         });
     });
+    describe("GET api/:article", () => {
+        it("should return article", done => {
+            chai
+                .request(app)
+                .get("/api/articles/tenetur-hic-in-5qtg0l")
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(responseArticle());
+                    expect(res.body.article.slug).to.be.equal(
+                        "tenetur-hic-in-5qtg0l"
+                    );
+                    done();
+                });
+        });
+    });
+
+    describe("PUT /api/:article", () => {});
 });
 
 const multipleResponseArticles = () => {
@@ -107,6 +125,6 @@ const responseArticle = () => {
                 "image": String,
                 "following": Boolean
             }
-    }
+        }
     }`;
 };

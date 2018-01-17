@@ -2,7 +2,7 @@
 //   :::::: A R T I C L E S    R O U T E S : :  :   :    :     :        :          :
 // ──────────────────────────────────────────────────────────────────────────
 //
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const Article = mongoose.model("Article");
 const Comment = mongoose.model("Comment");
@@ -97,7 +97,15 @@ module.exports = (express, logger) => {
     //
     // ─── GET ARTICLE ────────────────────────────────────────────────────────────────
     //
-    router.get("/:slug", (req, res) => {});
+    router.get("/:article", (req, res, next) => {
+        logger.debug("/:article");
+
+        Promise.all([req.article.populate("author").execPopulate()])
+            .then(() => {
+                return res.json({ article: req.article.getArticle(null) });
+            })
+            .catch(next);
+    });
 
     //
     // ─── CREATE ARTICLE ─────────────────────────────────────────────────────────────
@@ -124,18 +132,35 @@ module.exports = (express, logger) => {
     // ─── UPDATE ARTICLE ─────────────────────────────────────────────────────────────
     //
 
-    router.put("/:slug", () => {});
+    router.put("/:article", (req, res, next) => {
+        if (typeof req.body.article.title !== "undefined")
+            req.article.title = req.body.article.title;
+
+        if (typeof req.body.article.description !== "undefined")
+            req.article.description = req.body.article.description;
+        if (typeof req.body.article.body !== "undefined")
+            req.article.body = req.body.article.body;
+        if (typeof req.body.article.tagList !== "undefined")
+            req.article.tagList = req.body.article.tagList;
+
+        req.article
+            .save()
+            .then(article => {
+                return res.json({ article: article.getArticle(null) });
+            })
+            .catch(next);
+    });
 
     //
     // ─── DELETE ARTICLE ─────────────────────────────────────────────────────────────
     //
-    router.delete("/:slug", (req, res) => {});
+    router.delete("/:article", (req, res) => {});
 
     //
     // ─── ADD COMMENT ────────────────────────────────────────────────────────────────
     //
 
-    router.post("/:slug/comments", (req, res) => {});
+    router.post("/:article/comments", (req, res) => {});
 
     //
     // ─── GET COMMENTS ───────────────────────────────────────────────────────────────
