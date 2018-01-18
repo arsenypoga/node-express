@@ -138,8 +138,10 @@ module.exports = (express, logger) => {
 
         if (typeof req.body.article.description !== "undefined")
             req.article.description = req.body.article.description;
+
         if (typeof req.body.article.body !== "undefined")
             req.article.body = req.body.article.body;
+
         if (typeof req.body.article.tagList !== "undefined")
             req.article.tagList = req.body.article.tagList;
 
@@ -154,7 +156,11 @@ module.exports = (express, logger) => {
     //
     // ─── DELETE ARTICLE ─────────────────────────────────────────────────────────────
     //
-    router.delete("/:article", (req, res) => {});
+    router.delete("/:article", (req, res) => {
+        req.article.remove().then(() => {
+            return res.sendStatus(204);
+        });
+    });
 
     //
     // ─── ADD COMMENT ────────────────────────────────────────────────────────────────

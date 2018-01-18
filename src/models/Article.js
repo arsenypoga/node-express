@@ -25,10 +25,7 @@ ArticleSchema.pre("validate", function(next) {
 });
 
 ArticleSchema.methods.slugify = function() {
-    this.slug = `${slug(this.title)}-${(
-        (Math.random() * Math.pow(36, 6)) |
-        0
-    ).toString(36)}`;
+    this.slug = `${slug(this.title).toString(36)}`;
 };
 
 ArticleSchema.methods.getArticle = function(user) {

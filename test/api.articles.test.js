@@ -31,14 +31,20 @@ const mockArticle = () => {
     return dataGenerated;
 };
 
+const generatedArticle = mockArticle();
+
+let receivedArticle;
+
 describe("/api/articles", () => {
     describe("POST /api/articles", () => {
-        it("should return article", done => {
+        it("should return posted article", done => {
             chai
                 .request(app)
                 .post("/api/articles")
-                .send(mockArticle())
+                .send(generatedArticle)
                 .end((err, res) => {
+                    receivedArticle = res.body;
+                    expect(err).to.be.null;
                     expect(res).to.have.status(200);
                     expect(res.body).to.matchPattern(responseArticle());
                     done();
@@ -65,20 +71,50 @@ describe("/api/articles", () => {
         it("should return article", done => {
             chai
                 .request(app)
-                .get("/api/articles/tenetur-hic-in-5qtg0l")
+                .get(`/api/articles/${receivedArticle.article.slug}`)
                 .end((err, res) => {
                     expect(err).to.be.null;
                     expect(res).to.have.status(200);
                     expect(res.body).to.matchPattern(responseArticle());
                     expect(res.body.article.slug).to.be.equal(
-                        "tenetur-hic-in-5qtg0l"
+                        receivedArticle.article.slug
                     );
+
                     done();
                 });
         });
     });
 
-    describe("PUT /api/:article", () => {});
+    describe("PUT /api/:article", () => {
+        let updateArticle = mockArticle();
+        it("should update an article", done => {
+            chai
+                .request(app)
+                .put(`/api/articles/${receivedArticle.article.slug}`)
+                .send(updateArticle)
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(responseArticle());
+                    expect(res.body).not.to.be.equal(generatedArticle);
+                    done();
+                });
+        });
+    });
+
+    describe("DELETE /api/:article", () => {
+        it("should delete article", done => {
+            chai
+                .request(app)
+                .delete(`/api/articles/${receivedArticle.article.slug}`)
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(204);
+
+                    done();
+                });
+        });
+    });
 });
 
 const multipleResponseArticles = () => {
