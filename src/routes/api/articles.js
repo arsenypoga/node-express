@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 //
 import mongoose from "mongoose";
-
+import { auth } from "./../auth";
 const Article = mongoose.model("Article");
 const Comment = mongoose.model("Comment");
 const User = mongoose.model("User");
@@ -41,7 +41,7 @@ module.exports = (express, logger) => {
     //
     // ───LIST ARTICLES  ───────────────────────────────────────────────────────────────────────────
     //
-    router.get("/", (req, res, next) => {
+    router.get("/", auth.optional, (req, res, next) => {
         let query = {};
         let limit = 20;
         let offset = 0;
@@ -66,38 +66,61 @@ module.exports = (express, logger) => {
         );
 
         Promise.all([
-            Article.find(query)
-                .limit(limit)
-                .skip(offset)
-                .populate("author")
-                .sort({ createdAt: "desc" })
-                .exec(),
-            Article.count(query).exec(),
-        ])
-            .then(data => {
-                let articles = data[0];
-                let count = data[1];
-                logger.debug("Articles: " + JSON.stringify(articles));
-                logger.debug("Articles: " + JSON.stringify(count));
-                return res.json({
-                    articles: articles.map(article => {
-                        return article.getArticle(null);
-                    }),
-                    articlesCount: count,
-                });
-            })
-            .catch(next);
+            req.query.author
+                ? User.findOne({ username: req.query.author })
+                : null,
+            req.query.favorited
+                ? User.findOne({ username: req.query.favorited })
+                : null,
+        ]).then(data => {
+            let author = data[0];
+
+            /*let favoriter = data[1];
+            favoriter
+                ? (query._id = { $in: favoriter.favorites })
+                : (query._id = { $in: [] });
+            */
+
+            if (author) query.author = author._id;
+
+            return Promise.all([
+                Article.find(query)
+                    .limit(Number(limit))
+                    .skip(Number(offset))
+                    .populate("author")
+                    .sort({ createdAt: "desc" })
+                    .exec(),
+                Article.count(query).exec(),
+                req.payload ? User.findById(require.payload.id) : null,
+            ])
+                .then(data => {
+                    let articles = data[0];
+                    let count = data[1];
+                    let user = data[2];
+
+                    logger.debug("Articles: " + JSON.stringify(articles));
+                    logger.debug("Articles: " + JSON.stringify(count));
+
+                    return res.json({
+                        articles: articles.map(article => {
+                            return article.getArticle(user);
+                        }),
+                        articlesCount: count,
+                    });
+                })
+                .catch(next);
+        });
     });
 
     //
     // ─── FEED ARTICLES ──────────────────────────────────────────────────────────────
     //
-    router.get("/feed", (req, res) => {});
+    router.get("/feed", auth.required, (req, res) => {});
 
     //
     // ─── GET ARTICLE ────────────────────────────────────────────────────────────────
     //
-    router.get("/:article", (req, res, next) => {
+    router.get("/:article", auth.optional, (req, res, next) => {
         logger.debug("/:article");
 
         Promise.all([req.article.populate("author").execPopulate()])
@@ -110,8 +133,8 @@ module.exports = (express, logger) => {
     //
     // ─── CREATE ARTICLE ─────────────────────────────────────────────────────────────
     //
-    router.post("/", (req, res, next) => {
-        User.findById(req.body.payload.id)
+    router.post("/", auth.required, (req, res, next) => {
+        User.findById(req.payload.id)
             .then(user => {
                 if (!user) logger.error(user);
 
@@ -132,7 +155,7 @@ module.exports = (express, logger) => {
     // ─── UPDATE ARTICLE ─────────────────────────────────────────────────────────────
     //
 
-    router.put("/:article", (req, res, next) => {
+    router.put("/:article", auth.required, (req, res, next) => {
         if (typeof req.body.article.title !== "undefined")
             req.article.title = req.body.article.title;
 
@@ -156,7 +179,7 @@ module.exports = (express, logger) => {
     //
     // ─── DELETE ARTICLE ─────────────────────────────────────────────────────────────
     //
-    router.delete("/:article", (req, res) => {
+    router.delete("/:article", auth.required, (req, res) => {
         req.article.remove().then(() => {
             return res.sendStatus(204);
         });
@@ -166,29 +189,124 @@ module.exports = (express, logger) => {
     // ─── ADD COMMENT ────────────────────────────────────────────────────────────────
     //
 
-    router.post("/:article/comments", (req, res) => {});
+    router.post("/:article/comments", auth.required, (req, res, next) => {
+        User.findById(req.payload.id).then(user => {
+            if (!user) return res.sendStatus(401);
+
+            let comment = new Comment({
+                body: req.body.comment.body,
+                author: user,
+                article: req.article,
+            });
+
+            return comment.save((err, resComment) => {
+                if (err) res.send(err);
+                req.article.comments.push(comment._id);
+
+                return req.article.save((err, article) => {
+                    if (err) res.send(err);
+
+                    return res.json({ comment: comment.getComment(user) });
+                });
+            });
+        });
+    });
 
     //
     // ─── GET COMMENTS ───────────────────────────────────────────────────────────────
     //
 
-    router.get("/:slug/comments", (req, res) => {});
+    router.get("/:article/comments", auth.optional, (req, res, next) => {
+        Promise.resolve(req.payload ? User.findById(req.payload.id) : null)
+            .then(user => {
+                return req.article
+                    .populate({
+                        path: "comments",
+                        populate: { path: "author" },
+                        options: {
+                            sort: {
+                                createdAt: "desc",
+                            },
+                        },
+                    })
+                    .execPopulate()
+                    .then(article => {
+                        return res.json({
+                            comments: req.article.comments.map(comment => {
+                                logger.debug(comment);
+                                return comment.getComment(user);
+                            }),
+                        });
+                    });
+            })
+            .catch(next);
+    });
 
     //
     // ─── DELETE COMMENT ──────────────────────────────────────────────────────────────
     //
 
-    router.delete("/:slug/comments/:id", (req, res) => {});
+    router.delete(
+        "/:article/comments/:comment",
+        auth.required,
+        (req, res, next) => {
+            if (req.comment.author.toString() === req.payload.id.toString()) {
+                req.article.comments.remove(req.comment._id);
+                req.article
+                    .save()
+                    .then(
+                        Comment.findById({ _id: req.comment._id })
+                            .remove()
+                            .exec()
+                    )
+                    .then(() => res.sendStatus(204));
+            } else {
+                res.sendStatus(403);
+            }
+        }
+    );
 
     //
     // ─── FAVORITE ARTICLE ───────────────────────────────────────────────────────────
     //
 
-    router.post("/:slug/favorite", (req, res) => {});
+    router.post("/:article/favorite", auth.required, (req, res, next) => {
+        let articleId = req.article._id;
+
+        User.findById(req.payload.id)
+            .then(user => {
+                if (!user) res.sendStatus(401);
+
+                return user.favorite(articleId).then(() => {
+                    return req.article.updateFavoriteCount().then(article => {
+                        return res.json({ article: article.getArticle(user) });
+                    });
+                });
+            })
+            .catch(next);
+    });
 
     //
     // ─── UNFAVORITE ARTICLE ─────────────────────────────────────────────────────────
     //
-    router.delete("/:slug/favorite", (req, res) => {});
+    router.delete("/:article/favorite", auth.required, (req, res, next) => {
+        var articleId = req.article._id;
+
+        User.findById(req.payload.id)
+            .then(function(user) {
+                if (!user) {
+                    return res.sendStatus(401);
+                }
+
+                return user.unfavorite(articleId).then(() => {
+                    return req.article.updateFavoriteCount().then(article => {
+                        return res.json({
+                            article: article.getArticle(user),
+                        });
+                    });
+                });
+            })
+            .catch(next);
+    });
     return router;
 };

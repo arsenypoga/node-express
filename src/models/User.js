@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import { sign } from "jsonwebtoken";
 //const uniqueValidator = require("mongoose-unique-validator");
-import { genSaltSync, hashSync, compare } from "bcrypt";
-const logger = require("../logger.js");
+import { genSaltSync, hashSync, compare, compareSync } from "bcrypt";
+import logger from "./../logger";
+import { secret } from "./../routes/auth";
 
 const UserSchema = new mongoose.Schema(
     {
@@ -23,7 +24,7 @@ const UserSchema = new mongoose.Schema(
         salt: { type: String, required: [true, "can't be blank"] },
         hash: { type: String, required: [true, "can't be blank"] },
         following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-        favorite: [{ type: mongoose.Schema.Types.ObjectId, ref: "Article" }],
+        favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Article" }],
     },
     { timestamps: true }
 );
@@ -31,14 +32,12 @@ const UserSchema = new mongoose.Schema(
 // Add plugin for the
 //UserSchema.plugin(uniqueValidator, { message: "is already taken" });
 
-UserSchema.methods.verifyPassword = function(password, callback) {
+UserSchema.methods.verifyPassword = function(password) {
     logger.debug("Verifying Password...");
     logger.debug(this.hash);
     logger.debug(password);
 
-    compare(password, this.hash, (err, res) => {
-        callback(null, res);
-    });
+    return compareSync(password, this.hash);
 };
 
 UserSchema.methods.setPassword = function(password) {
@@ -77,7 +76,7 @@ UserSchema.methods.generateJWT = function() {
             username: this.username,
             exp: parseInt(exp.getTime() / 1000),
         },
-        this.salt
+        secret
     );
 };
 
@@ -97,7 +96,7 @@ UserSchema.methods.getProfile = function(user) {
         username: this.username,
         bio: this.bio,
         image: this.image,
-        following: false,
+        following: user ? user.isFollowing(this._id) : false,
     };
 };
 //user ? user.isFollowing(user._id) :
@@ -116,6 +115,25 @@ UserSchema.methods.unfollow = function(id) {
 UserSchema.methods.isFollowing = function(id) {
     return this.following.some(userid => {
         return userid.toString() === id.toString();
+    });
+};
+
+UserSchema.methods.favorite = function(id) {
+    if (this.favorites.indexOf(id) === -1) {
+        this.favorites.push(id);
+    }
+
+    return this.save();
+};
+
+UserSchema.methods.unfavorite = function(id) {
+    this.favorites.remove(id);
+    return this.save();
+};
+
+UserSchema.methods.isFavorite = function(id) {
+    return this.favorites.some(function(favoriteId) {
+        return favoriteId.toString() === id.toString();
     });
 };
 

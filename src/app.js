@@ -3,17 +3,9 @@
 //   :::::: P A C K A G E S : :  :   :    :     :        :          :
 // ──────────────────────────────────────────────────────────────────
 //
-/* const bodyParser = require("body-parser");
-const cors = require("cors");
-const errorhandler = require("errorhandler");
-const express = require("express");
-const expressSession = require("express-session");
-const morgan = require("morgan");
-const methodOverride = require("method-override");
-const mongoose = require("mongoose");
-const Mockgoose = require("mockgoose-fix").Mockgoose;
-
- */
+require("./models/User");
+require("./models/Article");
+require("./models/Comment");
 // Assigning app to express
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -23,22 +15,15 @@ import expressSession from "express-session";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import { urls } from "./../package.json";
-
+import { localStrategy } from "./routes/auth";
 const app = express();
-const bcrypt = require("bcrypt");
+
 //
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
 //
-
 const logger = require("./logger.js");
-
-//
-// ─── REGISTER MONGOOSE MODELS ───────────────────────────────────────────────────
-//
-
-require("./models/User");
-require("./models/Article");
-require("./models/Comment");
+localStrategy();
+logger.debug(mongoose.modelNames());
 
 if (process.env.NODE_ENV === "test") {
     logger.transports["console.debug"].silent = true;
@@ -75,6 +60,10 @@ if (process.env.NODE_ENV === "production") {
     });
 }
 //
+// ─── REGISTER MONGOOSE MODELS ───────────────────────────────────────────────────
+//
+
+//
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────
 //
 
@@ -104,7 +93,7 @@ app.use("/", index);
 // Set up express-session
 app.use(
     expressSession({
-        secret: bcrypt.genSaltSync(16),
+        secret: "secret",
         cookie: {
             maxAge: 60000,
         },

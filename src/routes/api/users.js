@@ -4,9 +4,9 @@
 // ──────────────────────────────────────────────────────────────────────────
 //
 import mongoose from "mongoose";
-
+import { auth } from "./../auth";
 const User = mongoose.model("User");
-
+import passport from "passport";
 module.exports = (express, logger) => {
     const router = express.Router();
 
@@ -14,8 +14,9 @@ module.exports = (express, logger) => {
     // ─── GET USER ───────────────────────────────────────────────────────────────────
     //
 
-    router.get("/user", (req, res, next) => {
-        User.findOne({ email: req.body.user.email })
+    router.get("/user", auth.required, (req, res, next) => {
+        logger.debug(req.payload);
+        User.findById(req.payload.id)
             .then(user => {
                 if (!user) return res.sendStatus(401);
                 return res.json({ user: user.getUser() });
@@ -27,7 +28,7 @@ module.exports = (express, logger) => {
     // ─── UPDATE USER ────────────────────────────────────────────────────────────────
     //
 
-    router.put("/user", (req, res, next) => {
+    router.put("/user", auth.required, (req, res, next) => {
         User.findById(req.body.user.id, (err, user) => {
             if (err) logger.error(err);
             if (!user) return res.sendStatus(401);
@@ -64,10 +65,10 @@ module.exports = (express, logger) => {
     //
     // ─── AUTHENTIFICATION ───────────────────────────────────────────────────────────
     //
-    router.post("/users/login", (req, res) => {
+    router.post("/users/login", (req, res, next) => {
         logger.debug(req.body);
         if (!req.body.user.email) {
-            logger.error("No email : `" + req.body.user);
+            logger.error("No email : " + req.body.user);
             return res.status(422).json({
                 errors: {
                     email: "can't be blank",
@@ -82,25 +83,23 @@ module.exports = (express, logger) => {
                 },
             });
         }
-        User.findOne({ email: req.body.user.email }, (err, user) => {
-            if (err) logger.error(err);
-            if (user)
-                logger.debug(
-                    `User ${user.username} has hash ${user.hash}, has salt ${
-                        user.salt
-                    }`
-                );
-            if (!user) {
-                return res.json({
-                    error: { email: `Email ${req.body.user.email} is invalid` },
-                });
-            }
-            user.verifyPassword(req.body.user.password, (err, isMatch) => {
-                if (isMatch) {
+        passport.authenticate(
+            "local",
+            { session: false },
+            (err, user, info) => {
+                if (err) return next(err);
+
+                if (user) {
+                    user.token = user.generateJWT();
                     return res.json({ user: user.getUser() });
+                } else {
+                    return res
+                        .status(422)
+                        .json(info)
+                        .end();
                 }
-            });
-        });
+            }
+        )(req, res, next);
     });
 
     //
@@ -139,16 +138,18 @@ module.exports = (express, logger) => {
 
         logger.debug("Set password successfully");
 
-        user.save((err, user) => {
-            if (err) logger.error(err);
-            if (!err)
-                logger.debug(
-                    `User ${user.username} has hash ${user.hash}, has salt ${
-                        user.salt
-                    }`
-                );
-            return res.json({ user: user.getUser() });
-        });
+        user
+            .save((err, user) => {
+                if (err) logger.error(err);
+                if (!err)
+                    logger.debug(
+                        `User ${user.username} has hash ${
+                            user.hash
+                        }, has salt ${user.salt}`
+                    );
+                return res.json({ user: user.getUser() });
+            })
+            .catch(next);
     });
 
     return router;

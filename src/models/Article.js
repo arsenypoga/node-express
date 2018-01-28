@@ -3,13 +3,13 @@ import slug from "slug";
 
 const logger = require("../logger");
 
-const User = require("./User");
+const User = mongoose.model("User");
 
 const ArticleSchema = new mongoose.Schema(
     {
         slug: { type: String, lowercase: true, unique: true },
         title: String,
-        comment: String,
+        comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
         body: String,
         favoritesCount: { type: Number, default: 0 },
         tagList: [{ type: String }],
@@ -39,7 +39,7 @@ ArticleSchema.methods.getArticle = function(user) {
         createdAt: this.createdAt,
         updatedAt: this.updatedAt,
         tagList: this.tagList,
-        favorited: false,
+        favorited: user ? user.isFavorite(this._id) : false,
         favoritesCount: this.favoritesCount,
         author: this.author.getProfile(user),
     };

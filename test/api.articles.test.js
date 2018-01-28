@@ -164,3 +164,6 @@ const responseArticle = () => {
         }
     }`;
 };
+const comment = () => {
+    
+}

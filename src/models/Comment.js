@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const CommentSchema = new mongoose.Schema(
     {
         body: String,
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         article: { type: mongoose.Schema.Types.ObjectId, ref: "Article" },
     },
     { timestamps: true }
@@ -13,7 +13,8 @@ CommentSchema.methods.getComment = function(user) {
         id: this._id,
         body: this.body,
         createdAt: this.createdAt,
-        author: this.author.getAuthor(user),
+        updatedAt: this.updatedAt,
+        author: this.author.getProfile(user),
     };
 };
 
