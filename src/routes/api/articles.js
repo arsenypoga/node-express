@@ -190,26 +190,28 @@ module.exports = (express, logger) => {
     //
 
     router.post("/:article/comments", auth.required, (req, res, next) => {
-        User.findById(req.payload.id).then(user => {
-            if (!user) return res.sendStatus(401);
+        User.findById(req.payload.id)
+            .then(user => {
+                if (!user) return res.sendStatus(401);
 
-            let comment = new Comment({
-                body: req.body.comment.body,
-                author: user,
-                article: req.article,
-            });
-
-            return comment.save((err, resComment) => {
-                if (err) res.send(err);
-                req.article.comments.push(comment._id);
-
-                return req.article.save((err, article) => {
-                    if (err) res.send(err);
-
-                    return res.json({ comment: comment.getComment(user) });
+                let comment = new Comment({
+                    body: req.body.comment.body,
+                    author: user,
+                    article: req.article,
                 });
-            });
-        });
+
+                comment.save((err, resComment) => {
+                    if (err) return next(err);
+                    req.article.comments.push(resComment._id);
+                    logger.debug(req.article.comments);
+
+                    req.article.save((err, article) => {
+                        if (err) return next(err);
+                        return res.json({ comment: comment.getComment(user) });
+                    });
+                });
+            })
+            .catch(next);
     });
 
     //
@@ -233,7 +235,6 @@ module.exports = (express, logger) => {
                     .then(article => {
                         return res.json({
                             comments: req.article.comments.map(comment => {
-                                logger.debug(comment);
                                 return comment.getComment(user);
                             }),
                         });
@@ -255,11 +256,13 @@ module.exports = (express, logger) => {
                 req.article
                     .save()
                     .then(
-                        Comment.findById({ _id: req.comment._id })
+                        Comment.find({ _id: req.comment._id })
                             .remove()
                             .exec()
                     )
-                    .then(() => res.sendStatus(204));
+                    .then(() => {
+                        res.sendStatus(204);
+                    });
             } else {
                 res.sendStatus(403);
             }

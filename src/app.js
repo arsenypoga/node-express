@@ -16,9 +16,11 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import { urls } from "./../package.json";
 import { localStrategy } from "./routes/auth";
+import debug from "debug";
 const app = express();
 
 //
+
 // ─── WINSTON LOGGER ─────────────────────────────────────────────────────────────
 //
 const logger = require("./logger.js");
@@ -40,7 +42,9 @@ if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     });
 
     if (process.env.NODE_ENV === "development") {
+        process.env.DEBUG = "*,express*";
         mongoose.set("debug", true);
+        debug("node")("booting %O", "express-app");
 
         app.use(
             morgan("dev", {
@@ -120,6 +124,7 @@ app.use((err, req, res, next) => {
             error: err,
         },
     });
+    res.end();
 });
 
 app.use((err, req, res, next) => {
@@ -130,6 +135,7 @@ app.use((err, req, res, next) => {
             error: {},
         },
     });
+    res.end();
 });
 
 //
