@@ -106,7 +106,7 @@ describe("/api/user", () => {
             chai
                 .request(app)
                 .get("/api/user")
-                .send(responseUser)
+                .set("Authorization", `Token ${responseUser.user.token}`)
                 .end((err, res) => {
                     getUser(res);
                     done();
@@ -190,6 +190,7 @@ describe("/api/user", () => {
             chai
                 .request(app)
                 .put("/api/user")
+                .set("Authorization", `Token ${responseUser.user.token}`)
                 .send(appliedUser)
                 .end((err, res) => {
                     getUser(res);
@@ -220,3 +221,5 @@ const unprocessableEntity = (res, property) => {
     res.body.errors.should.have.property(property);
     res.body.errors[property].length.should.be.gt(0);
 };
+
+export { generateUser };

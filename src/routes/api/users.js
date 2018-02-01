@@ -139,14 +139,14 @@ module.exports = (express, logger) => {
         logger.debug("Set password successfully");
 
         user
-            .save((err, user) => {
-                if (err) logger.error(err);
-                if (!err)
-                    logger.debug(
-                        `User ${user.username} has hash ${
-                            user.hash
-                        }, has salt ${user.salt}`
-                    );
+            .save()
+            .then(() => {
+                // if (err) return next(err);
+                //logger.debug(
+                //    `User ${user.username} has hash ${user.hash}, has salt ${
+                //        user.salt
+                //    }`
+                //);
                 return res.json({ user: user.getUser() });
             })
             .catch(next);

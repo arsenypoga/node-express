@@ -16,7 +16,7 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import { urls } from "./../package.json";
 import { localStrategy } from "./routes/auth";
-import debug from "debug";
+//import debug from "debug";
 const app = express();
 
 //
@@ -42,9 +42,10 @@ if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     });
 
     if (process.env.NODE_ENV === "development") {
-        process.env.DEBUG = "*,express*";
+        //process.env.DEBUG = "*,express*";
+        //logger.debug(process.env.NODE_ENV);
         mongoose.set("debug", true);
-        debug("node")("booting %O", "express-app");
+        //debug("node")("booting %O", "express-app");
 
         app.use(
             morgan("dev", {

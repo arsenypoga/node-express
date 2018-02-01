@@ -4,6 +4,7 @@ import chaiHTTP from "chai-http";
 import chaiJsonPattern from "chai-json-pattern";
 
 import faker from "faker";
+import { generateUser } from "./api.users.test";
 
 const app = require("../src/app");
 const getProfile = require("./api.profiles.test").getProfile;
@@ -21,7 +22,6 @@ const mockArticle = () => {
             body: faker.lorem.paragraphs(),
             tagList: [],
         },
-        payload: { id: "5a56a1127eeabb475c769313" },
     };
 
     for (let i = 0; i <= Math.round(Math.random() * 20); i++) {
@@ -32,15 +32,28 @@ const mockArticle = () => {
 };
 
 const generatedArticle = mockArticle();
-
+let receivedUser;
 let receivedArticle;
 
 describe("/api/articles", () => {
+    before(done => {
+        chai
+            .request(app)
+            .post("/api/users")
+            .send({ user: generateUser() })
+            .end((err, res) => {
+                expect(err).to.be.null;
+                receivedUser = res.body;
+                done();
+            });
+    });
+
     describe("POST /api/articles", () => {
         it("should return posted article", done => {
             chai
                 .request(app)
                 .post("/api/articles")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .send(generatedArticle)
                 .end((err, res) => {
                     receivedArticle = res.body;
@@ -91,6 +104,7 @@ describe("/api/articles", () => {
             chai
                 .request(app)
                 .put(`/api/articles/${receivedArticle.article.slug}`)
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .send(updateArticle)
                 .end((err, res) => {
                     expect(err).to.be.null;
@@ -107,6 +121,7 @@ describe("/api/articles", () => {
             chai
                 .request(app)
                 .delete(`/api/articles/${receivedArticle.article.slug}`)
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .end((err, res) => {
                     expect(err).to.be.null;
                     expect(res).to.have.status(204);
@@ -164,6 +179,3 @@ const responseArticle = () => {
         }
     }`;
 };
-const comment = () => {
-    
-}
