@@ -154,4 +154,4 @@ app.listen(port, () => {
     logger.info;
 });
 
-export default app;
+module.exports = app;

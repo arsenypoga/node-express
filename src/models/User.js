@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { sign } from "jsonwebtoken";
 //const uniqueValidator = require("mongoose-unique-validator");
-import { genSaltSync, hashSync, /*compare,*/ compareSync } from "bcrypt";
+import { genSaltSync, hashSync, compare, compareSync } from "bcryptjs";
 import logger from "./../logger";
 import { secret } from "./../routes/auth";
 
@@ -53,8 +53,11 @@ UserSchema.methods.setPassword = function(password) {
             logger.debug(this.hash);
         });
     }); */
-    this.salt = genSaltSync(256);
-    this.hash = hashSync(password, this.salt);
+    let salt = genSaltSync(2);
+    this.salt = salt;
+    logger.debug("here");
+    let hash = hashSync(password, salt);
+    this.hash = hash;
 
     //this.salt = crypto.randomBytes(16).toString("hex");
     /*this.hash = crypto

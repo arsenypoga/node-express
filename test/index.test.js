@@ -12,21 +12,14 @@ let should = chai.should();
 
 chai.use(chaiHTTP);
 
-const Mockgoose = require("mockgoose-fix").Mockgoose;
-const Mongoose = require("mongoose").Mongoose;
-const mongoose = new Mongoose();
-const mockgoose = new Mockgoose(mongoose);
-const pckg = require("../package.json");
-
-describe("GET /", () => {
+describe("GET /statistics", () => {
     it("should get index http", done => {
         chai
             .request(app)
-            .get("/")
+            .get("/statistics")
             .end((err, res) => {
                 res.should.have.status(200);
                 done();
             });
     });
 });
-
