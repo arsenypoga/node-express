@@ -15,7 +15,6 @@ import faker from "faker";
 const app = require("../src/app");
 
 let expect = chai.expect;
-let should = chai.should();
 
 chai.use(chaiHTTP);
 
@@ -24,10 +23,11 @@ const generateUser = () => ({
     password: faker.internet.password(),
     username: faker.internet.userName(),
 });
+
 let responseUser = {};
 const newUser = generateUser();
 
-describe("/api/user", () => {
+describe("/api/users", () => {
     //
 
     // ─── REGISTRATION ───────────────────────────────────────────────────────────────
@@ -42,7 +42,9 @@ describe("/api/user", () => {
                     user: newUser,
                 })
                 .end((err, res) => {
-                    getUser(res);
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(getUser());
 
                     responseUser = res.body;
                     done();
@@ -60,7 +62,11 @@ describe("/api/user", () => {
                     },
                 })
                 .end((err, res) => {
-                    unprocessableEntity(res, "email");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(422);
+                    expect(res.body).to.matchPattern(
+                        unprocessableEntry("email")
+                    );
                     done();
                 });
         });
@@ -75,7 +81,11 @@ describe("/api/user", () => {
                     },
                 })
                 .end((err, res) => {
-                    unprocessableEntity(res, "password");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(422);
+                    expect(res.body).to.matchPattern(
+                        unprocessableEntry("password")
+                    );
                     done();
                 });
         });
@@ -91,7 +101,11 @@ describe("/api/user", () => {
                     },
                 })
                 .end((err, res) => {
-                    unprocessableEntity(res, "username");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(422);
+                    expect(res.body).to.matchPattern(
+                        unprocessableEntry("username")
+                    );
                     done();
                 });
         });
@@ -108,7 +122,9 @@ describe("/api/user", () => {
                 .get("/api/user")
                 .set("Authorization", `Token ${responseUser.user.token}`)
                 .end((err, res) => {
-                    getUser(res);
+                    expect(err).to.be.null;
+                    expect(res).a.have.status(200);
+                    expect(res.body).to.matchPattern(getUser());
                     done();
                 });
         });
@@ -118,8 +134,8 @@ describe("/api/user", () => {
                 .get("/api/user")
                 .send({ user: generateUser })
                 .end((err, res) => {
-                    res.should.not.have.status(200);
-                    res.body.should.be.a("object");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(401);
                     done();
                 });
         });
@@ -138,7 +154,9 @@ describe("/api/user", () => {
                     user: sentUser,
                 })
                 .end((err, res) => {
-                    getUser(res);
+                    expect(err).to.be.null;
+                    expect(res).a.have.status(200);
+                    expect(res.body).to.matchPattern(getUser());
                     done();
                 });
         });
@@ -152,7 +170,11 @@ describe("/api/user", () => {
                     },
                 })
                 .end((err, res) => {
-                    unprocessableEntity(res, "email");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(422);
+                    expect(res.body).to.matchPattern(
+                        unprocessableEntry("email")
+                    );
                     done();
                 });
         });
@@ -166,7 +188,11 @@ describe("/api/user", () => {
                     },
                 })
                 .end((err, res) => {
-                    unprocessableEntity(res, "password");
+                    expect(err).to.exist;
+                    expect(res).a.have.status(422);
+                    expect(res.body).to.matchPattern(
+                        unprocessableEntry("password")
+                    );
                     done();
                 });
         });
@@ -193,8 +219,9 @@ describe("/api/user", () => {
                 .set("Authorization", `Token ${responseUser.user.token}`)
                 .send(appliedUser)
                 .end((err, res) => {
-                    getUser(res);
-                    //res.body.should.be.equal(appliedUser);
+                    expect(err).to.be.null;
+                    expect(res).a.have.status(200);
+                    expect(res.body).to.matchPattern(getUser());
 
                     done();
                 });
@@ -202,24 +229,30 @@ describe("/api/user", () => {
     });
 });
 
-const getUser = res => {
-    res.should.have.status(200);
-    res.body.should.be.a("object");
-    res.body.should.have.property("user");
-    res.body.user.should.have.property("email");
-    res.body.user.should.have.property("id");
-    res.body.user.should.have.property("token");
-    res.body.user.should.have.property("username");
-    res.body.user.should.have.property("bio");
-    res.body.user.should.have.property("image");
-};
+const getProfile = () => `{
+        "profile": {
+            "username": String,
+            "bio": String,
+            "image": String,
+            "following": Boolean,
+        }
+    }`;
 
-const unprocessableEntity = (res, property) => {
-    res.should.have.status(422);
-    res.body.should.be.a("object");
-    res.body.should.have.property("errors");
-    res.body.errors.should.have.property(property);
-    res.body.errors[property].length.should.be.gt(0);
-};
+const getUser = () => `{
+    "user": {
+        "username": String,
+        "email": String,
+        "bio": String,
+        "image": String,
+        "token": String,
+        "id": String 
+    }
+}`;
 
-export { generateUser };
+const unprocessableEntry = property => `{
+    "errors": {
+        "${property}": String
+    }
+}`;
+
+export { generateUser, getUser, getProfile };

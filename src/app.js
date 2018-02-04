@@ -16,6 +16,10 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import { urls } from "./../package.json";
 import { localStrategy } from "./routes/auth";
+import pugjs from "pug";
+import path from "path";
+import getEndpoints from "express-list-endpoints";
+
 //import debug from "debug";
 const app = express();
 
@@ -42,10 +46,9 @@ if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     });
 
     if (process.env.NODE_ENV === "development") {
-        //process.env.DEBUG = "*,express*";
-        //logger.debug(process.env.NODE_ENV);
+        process.env.DEBUG = "*,express*";
+        logger.debug(process.env.NODE_ENV);
         mongoose.set("debug", true);
-        //debug("node")("booting %O", "express-app");
 
         app.use(
             morgan("dev", {
@@ -55,7 +58,9 @@ if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     }
 }
 
-// Disable Logging if env is test
+//
+// ─── REGISTER MONGOOSE MODELS ───────────────────────────────────────────────────
+//
 if (process.env.NODE_ENV === "production") {
     let currentURL = urls.mongodb_production_url;
     mongoose.connect(currentURL, err => {
@@ -64,9 +69,6 @@ if (process.env.NODE_ENV === "production") {
             : logger.info(`Connected to the {currentURL} database`);
     });
 }
-//
-// ─── REGISTER MONGOOSE MODELS ───────────────────────────────────────────────────
-//
 
 //
 // ─── ROUTES MANAGEMENT ──────────────────────────────────────────────────────────
@@ -79,15 +81,17 @@ const port = process.env.PORT || 3000;
 // ─── SET UP MIDDLEWARE ──────────────────────────────────────────────────────────
 //
 
+app.set("view engine", pugjs);
+app.set("views", path.join(__dirname, "public/views"));
 app.use(cors());
 app.use(
     bodyParser.urlencoded({
         extended: false,
     })
 );
-app.use(bodyParser.json());
 
-// app.use(express.static())
+app.use(bodyParser.json());
+app.use(express.static("./dist/views"));
 
 //
 // ─── MOUNT ROUTES ───────────────────────────────────────────────────────────────
@@ -147,6 +151,7 @@ app.listen(port, () => {
     logger.info(
         `Server Started on ${port} App is running in ${process.env.NODE_ENV}`
     );
+    logger.info;
 });
 
-module.exports = app;
+export default app;

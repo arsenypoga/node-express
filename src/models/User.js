@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { sign } from "jsonwebtoken";
 //const uniqueValidator = require("mongoose-unique-validator");
-import { genSaltSync, hashSync, compare, compareSync } from "bcrypt";
+import { genSaltSync, hashSync, /*compare,*/ compareSync } from "bcrypt";
 import logger from "./../logger";
 import { secret } from "./../routes/auth";
 

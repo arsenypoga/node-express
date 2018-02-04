@@ -44,7 +44,6 @@ describe("/api/articles/:article/comments", () => {
                     expect(res).to.have.status(200);
                     expect(res.body).to.matchPattern(comment());
                     receivedComment = res.body;
-                    console.log(receivedComment);
                     done();
                 });
         });

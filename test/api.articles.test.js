@@ -130,6 +130,37 @@ describe("/api/articles", () => {
                 });
         });
     });
+
+    describe("POST /:article/favorite", () => {
+        it("should return liked article", done => {
+            chai
+                .request(app)
+                .post("/api/articles/how-to-train-your-dragon/favorite")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(responseArticle());
+                    expect(res.body.article.favorited).to.be.equal(true);
+                    done();
+                });
+        });
+    });
+    describe("DELETE /:article/favorite", () => {
+        it("should return liked article", done => {
+            chai
+                .request(app)
+                .delete("/api/articles/how-to-train-your-dragon/favorite")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
+                .end((err, res) => {
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body).to.matchPattern(responseArticle());
+                    expect(res.body.article.favorited).to.be.equal(false);
+                    done();
+                });
+        });
+    });
 });
 
 const multipleResponseArticles = () => {

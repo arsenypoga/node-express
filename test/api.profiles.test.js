@@ -1,90 +1,72 @@
-//
-// ────────────────────────────────────────────────────────────────────────── I ──────────
-//   :::::: A P I   P R O F I L E   T E S T S : :  :   :    :     :        :          :
-// ────────────────────────────────────────────────────────────────────────────────────
-//
 process.env.NODE_ENV = "test";
 import chai from "chai";
 import chaiHTTP from "chai-http";
 import chaiJsonPattern from "chai-json-pattern";
 
 import faker from "faker";
+import { generateUser, getUser, getProfile } from "./api.users.test";
 
 const app = require("../src/app");
+
 let expect = chai.expect;
-let should = chai.should();
 
 chai.use(chaiHTTP);
+chai.use(chaiJsonPattern);
+let receivedUser;
+describe("/api/profiles/", () => {
+    before(done => {
+        chai
+            .request(app)
+            .post("/api/users")
+            .send({ user: generateUser() })
+            .end((err, res) => {
+                expect(err).to.be.null;
+                receivedUser = res.body;
+                done();
+            });
+    });
 
-describe("/api/profiles", () => {
-    //
-    // ─── GET PROFILE ────────────────────────────────────────────────────────────────
-    //
     describe("GET /api/profiles/:username", () => {
         it("should return profile", done => {
             chai
                 .request(app)
-                .get("/api/profiles/" + faker.internet.userName())
+                .get("/api/profiles/kamren_hintz83")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .end((err, res) => {
-                    expect(err).to.be.null;
+                    expect(err, JSON.stringify(err)).to.be.null;
                     expect(res).to.have.status(200);
-                    //expect(res.body).to.matchPattern(getProfile());
-
+                    expect(res.body).to.matchPattern(getProfile());
                     done();
                 });
         });
     });
 
-    //
-    // ─── POST PROFILE ───────────────────────────────────────────────────────────────
-    //
-
-    describe("POST /api/profiles/:username/follow", () => {
+    describe("POST /api/profiles/:user/follow", () => {
         it("should return profile", done => {
             chai
                 .request(app)
-                .post("/api/profiles/" + faker.internet.userName() + "/follow")
+                .post("/api/profiles/kamren_hintz83/follow")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .end((err, res) => {
-                    expect(err).to.be.null;
+                    expect(err, JSON.stringify(err)).to.be.null;
                     expect(res).to.have.status(200);
-                    //expect(res.body).to.matchPattern(getProfile());
-
-                    //expect(res.body).to.matchPattern(getProfile());
+                    expect(res.body).to.matchPattern(getProfile());
                     done();
                 });
         });
     });
-    //
-    // ─── DELETE PROFILE ─────────────────────────────────────────────────────────────
-    //
-    describe("DELETE /api/profiles/:username", () => {
+    describe("DELETE /api/profiles/:user/follow", () => {
         it("should return profile", done => {
             chai
                 .request(app)
-                .delete(
-                    "/api/profiles/" + faker.internet.userName() + "/follow"
-                )
+                .post("/api/profiles/kamren_hintz83/follow")
+                .set("Authorization", `Token ${receivedUser.user.token}`)
                 .end((err, res) => {
                     expect(err).to.be.null;
                     expect(res).to.have.status(200);
-                    //expect(res.body).to.matchPattern(getProfile());
-
-                    //expect(res.body).to.matchPattern(getProfile());
-
+                    expect(res.body).to.matchPattern(getProfile());
                     done();
                 });
         });
     });
 });
-
-const getProfile = () => {
-    return `{
-        "profile": {
-            "username": String,
-            "bio": String,
-            "image": String,
-            "following": String
-        }
-    }`;
-};
-module.exports.getProfile = getProfile;
