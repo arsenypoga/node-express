@@ -1,4 +1,4 @@
-FROM alphine:3.4
+FROM alpine:3.4
 LABEL authors="IllyaLaifu"
 RUN apk add --update nodejs bash git
 COPY package.json /www/package.json
