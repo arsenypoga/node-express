@@ -1,7 +1,12 @@
-FROM node:carbon
-WORKDIR /usr/src/app
-COPY package*.json ./
+FROM alphine:3.4
+LABEL authors="IllyaLaifu"
+RUN apk add --update nodejs bash git
+COPY package.json /www/package.json
+RUN cd /www; npm install
+COPY . /www
+COPY . /www
+ENV PORT 3000
+EXPOSE 3000
 
-RUN npm install
-COPY . .
+CMD ["npm", "start"]
 

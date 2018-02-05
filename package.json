@@ -50,8 +50,8 @@
     "prettier": "^1.10.2"
   },
   "scripts": {
-    "start": "set NODE_ENV=development&& nodemon --preserve-symlinks dist/app.js",
-    "dev": "set NODE_ENV=development&& nodemon -w src --debug --exec  \"babel-node ./src/app.js --presets env\"",
+    "start": "set NODE_ENV=development&& npx nodemon --preserve-symlinks dist/app.js",
+    "dev": "set NODE_ENV=development&& npx nodemon -w src --debug --exec  \"babel ./src/app.js --presets env\"",
     "build": "babel src -s -D -d dist --no-comments --presets env --copy-files",
     "prestart": "npm run -s build",
     "test": "set NODE_ENV=test&& nyc mocha --compilers babel-core/register ./test/*.test.js --timeout=120000 --exit"

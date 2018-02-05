@@ -1,4 +1,3 @@
-const app = require("../app");
 import listEndpoints from "express-list-endpoints";
 
 module.exports = (express, logger) => {
